@@ -1,5 +1,6 @@
 package com.example.colordetector;
 
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,11 +17,13 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MainActivity extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
+    private CameraRenderer renderer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +42,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         mOpenCvCameraView = findViewById(R.id.openCVCamera);
         mOpenCvCameraView.setVisibility(View.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+        renderer = (CameraRenderer)findViewById(R.id.renderer_view);
     }
 
     @Override
@@ -47,6 +52,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         super.onPause();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
+        renderer.onDestroy();
     }
 
     @Override
@@ -55,6 +61,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         super.onResume();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.enableView();
+        renderer.onResume();
     }
 
     @Override
@@ -90,8 +97,6 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         int rows = mRgba.rows();
 
         Point center = new Point(rows * 0.5, cols * 0.5);
-        double[] colorRGBA = mRgba.get((int) center.x, (int) center.y);
-        Log.i("TAG MM", "Color size = " + colorRGBA[0] + " , G " + colorRGBA[1] + " , R " + colorRGBA[2]);
 
         Imgproc.circle(mRgba, center, 50, new Scalar(0, 0, 0), 5); // black circle
         Imgproc.circle(mRgba, center, 55, new Scalar(255, 255, 255), 2); // white circle
@@ -122,10 +127,11 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             }
         }
 
-        Collections.sort(blueValues);
-        Collections.sort(greenValues);
-        Collections.sort(redValues);
-        Collections.sort(alphaValues);
+        // Use parallel sorting for better performance
+        blueValues.parallelStream().sorted().collect(Collectors.toList());
+        greenValues.parallelStream().sorted().collect(Collectors.toList());
+        redValues.parallelStream().sorted().collect(Collectors.toList());
+        alphaValues.parallelStream().sorted().collect(Collectors.toList());
 
         double medianBlue = blueValues.get(blueValues.size() / 2);
         double medianGreen = greenValues.get(greenValues.size() / 2);

@@ -15,4 +15,9 @@
         opencv:camera_id="any" />
     <!-- [camera_view] -->
 
+    <com.example.colordetector.CameraRenderer
+        android:id="@+id/renderer_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
 </FrameLayout>
