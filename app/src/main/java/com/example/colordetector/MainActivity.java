@@ -1,5 +1,6 @@
 package com.example.colordetector;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -28,8 +29,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         super.onCreate(savedInstanceState);
 
         if (OpenCVLoader.initLocal())
-            Log.i("Main" , "OpenCV init success");
-        else{
+            Log.i("Main", "OpenCV init success");
+        else {
             Log.e("Main", "OpenCV init failed");
             (Toast.makeText(this, "OpenCV initialization failed!", Toast.LENGTH_LONG)).show();
             return;
@@ -43,16 +44,14 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     }
 
     @Override
-    public void onPause()
-    {
+    public void onPause() {
         super.onPause();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.enableView();
@@ -92,23 +91,38 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         Scalar medianColor = ComputeMedian(mRgba.submat(blackRect));
         Log.i("TAG MM", "Median color value: " + medianColor);
 
+        PrintMedian(medianColor);
+
         return mRgba;
     }
 
-    private Point GetCenterPoint(){
+    private void PrintMedian(Scalar medianColor) {
+        // Convert the Scalar values to a string
+        @SuppressLint("DefaultLocale") String medianColorText = String.format("Median Color: [%.2f, %.2f, %.2f, %.2f]",
+                medianColor.val[0], medianColor.val[1],
+                medianColor.val[2], medianColor.val[3]);
+
+        Point textPosition = new Point(0, mRgba.rows() / 6);
+
+        // Draw the text on the Mat object
+        Imgproc.putText(mRgba, medianColorText, textPosition, Imgproc.FONT_HERSHEY_SIMPLEX,
+                2.0, new Scalar(0, 0, 0), 5);
+    }
+
+    private Point GetCenterPoint() {
         int cols = mRgba.cols();
         int rows = mRgba.rows();
 
         return new Point(rows * 0.5, cols * 0.5);
     }
 
-    private Rect DefineBlackRect(Point centerPoint){
+    private Rect DefineBlackRect(Point centerPoint) {
         int blackRectWidth = 100;
         int blackRectHeight = 100;
         return new Rect((int) (centerPoint.x - blackRectWidth / 2), (int) (centerPoint.y - blackRectHeight / 2), blackRectWidth, blackRectHeight);
     }
 
-    private void DrawRectangles(Point centerPoint, Rect blackRect){
+    private void DrawRectangles(Point centerPoint, Rect blackRect) {
         int whiteRectWidth = blackRect.width + 10;
         int whiteRectHeight = blackRect.height + 10;
 
@@ -118,7 +132,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         Imgproc.rectangle(mRgba, blackRect, new Scalar(0, 0, 0), 5);
     }
 
-    private Scalar ComputeMedian(Mat roiMat){
+    private Scalar ComputeMedian(Mat roiMat) {
         List<Double> blueValues = new ArrayList<>();
         List<Double> greenValues = new ArrayList<>();
         List<Double> redValues = new ArrayList<>();
@@ -149,9 +163,9 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         return new Scalar(medianBlue, medianGreen, medianRed, medianAlpha);
     }
 
-    private boolean IsBlackOrWhitePixel(double[] pixel){
+    private boolean IsBlackOrWhitePixel(double[] pixel) {
         return (pixel[0] == 250 && pixel[1] == 250 && pixel[2] == 250)
                 || (pixel[0] == 0 && pixel[1] == 0 && pixel[2] == 0);
     }
-    
+
 }
