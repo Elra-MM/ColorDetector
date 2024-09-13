@@ -1,18 +1,27 @@
 package com.example.colordetector;
 
+import android.annotation.SuppressLint;
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import com.opencsv.CSVReader;
 
 import org.opencv.android.CameraActivity;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,8 +36,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         super.onCreate(savedInstanceState);
 
         if (OpenCVLoader.initLocal())
-            Log.i("Main" , "OpenCV init success");
-        else{
+            Log.i("Main", "OpenCV init success");
+        else {
             Log.e("Main", "OpenCV init failed");
             (Toast.makeText(this, "OpenCV initialization failed!", Toast.LENGTH_LONG)).show();
             return;
@@ -39,19 +48,37 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         mOpenCvCameraView = findViewById(R.id.openCVCamera);
         mOpenCvCameraView.setVisibility(View.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+        try {
+            AssetManager assetManager = getAssets();
+            InputStream inputStream = assetManager.open("dataset_colors.csv");
+            CSVReader reader = new CSVReader(new InputStreamReader(inputStream));
+            List<String[]> fileLines = reader.readAll();
+            for (String[] line : fileLines) {
+                for (String cell : line) {
+                    System.out.print(cell + " ");
+                }
+                System.out.println();
+            }
+            Log.i("TAG MM", " File count = " + fileLines.size());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("TAG MM", "The specified file was not found : " + e.getMessage());
+        }
+
     }
 
+
+
     @Override
-    public void onPause()
-    {
+    public void onPause() {
         super.onPause();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.enableView();
@@ -79,41 +106,69 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        mRgba = inputFrame.rgba();
 
-        FindColor(inputFrame);
+        Point centerPoint = GetCenterPoint();
+
+
+        Rect blackRect = DefineBlackRect(centerPoint);
+
+        DrawRectangles(centerPoint, blackRect);
+
+        Scalar medianColor = ComputeMedian(mRgba.submat(blackRect));
+        Log.i("TAG MM", "Median color value: " + medianColor);
+
+        PrintMedian(medianColor);
+
         return mRgba;
     }
 
-    private void FindColor(CameraBridgeViewBase.CvCameraViewFrame inputFrame){
-        mRgba = inputFrame.rgba();
+    private void PrintMedian(Scalar medianColor) {
+        // Convert the Scalar values to a string
+        @SuppressLint("DefaultLocale") String medianColorText = String.format("Median Color: [%.2f, %.2f, %.2f, %.2f]",
+                medianColor.val[0], medianColor.val[1],
+                medianColor.val[2], medianColor.val[3]);
+
+        Point textPosition = new Point(0, mRgba.rows() / 6);
+
+        // Draw the text on the Mat object
+        Imgproc.putText(mRgba, medianColorText, textPosition, Imgproc.FONT_HERSHEY_SIMPLEX,
+                2.0, new Scalar(0, 0, 0), 5);
+    }
+
+    private Point GetCenterPoint() {
         int cols = mRgba.cols();
         int rows = mRgba.rows();
 
-        Point center = new Point(rows * 0.5, cols * 0.5);
-        double[] colorRGBA = mRgba.get((int) center.x, (int) center.y);
-        Log.i("TAG MM", "Color size = " + colorRGBA[0] + " , G " + colorRGBA[1] + " , R " + colorRGBA[2]);
+        return new Point(rows * 0.5, cols * 0.5);
+    }
 
-        Imgproc.circle(mRgba, center, 50, new Scalar(0, 0, 0), 5); // black circle
-        Imgproc.circle(mRgba, center, 55, new Scalar(255, 255, 255), 2); // white circle
+    private Rect DefineBlackRect(Point centerPoint) {
+        int blackRectWidth = 100;
+        int blackRectHeight = 100;
+        return new Rect((int) (centerPoint.x - blackRectWidth / 2), (int) (centerPoint.y - blackRectHeight / 2), blackRectWidth, blackRectHeight);
+    }
 
-        // Create a mask for the circle
-        Mat mask = Mat.zeros(mRgba.size(), mRgba.type());
-        Imgproc.circle(mask, center, 50, new Scalar(255, 255, 255), -1); // filled white circle
+    private void DrawRectangles(Point centerPoint, Rect blackRect) {
+        int whiteRectWidth = blackRect.width + 10;
+        int whiteRectHeight = blackRect.height + 10;
 
-        // Extract the pixels within the circle using the mask
-        Mat circlePixels = new Mat();
-        mRgba.copyTo(circlePixels, mask);
+        Rect whiteRect = new Rect((int) (centerPoint.x - whiteRectWidth / 2), (int) (centerPoint.y - whiteRectHeight / 2), whiteRectWidth, whiteRectHeight);
 
-        // Calculate the median of these pixels
+        Imgproc.rectangle(mRgba, whiteRect, new Scalar(255, 255, 255), 5);
+        Imgproc.rectangle(mRgba, blackRect, new Scalar(0, 0, 0), 5);
+    }
+
+    private Scalar ComputeMedian(Mat roiMat) {
         List<Double> blueValues = new ArrayList<>();
         List<Double> greenValues = new ArrayList<>();
         List<Double> redValues = new ArrayList<>();
         List<Double> alphaValues = new ArrayList<>();
 
-        for (int i = 0; i < circlePixels.rows(); i++) {
-            for (int j = 0; j < circlePixels.cols(); j++) {
-                double[] pixel = circlePixels.get(i, j);
-                if (pixel != null) {
+        for (int i = 0; i < roiMat.rows(); i++) {
+            for (int j = 0; j < roiMat.cols(); j++) {
+                double[] pixel = roiMat.get(i, j);
+                if (pixel != null && !IsBlackOrWhitePixel(pixel)) {
                     blueValues.add(pixel[0]);
                     greenValues.add(pixel[1]);
                     redValues.add(pixel[2]);
@@ -132,38 +187,12 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         double medianRed = redValues.get(redValues.size() / 2);
         double medianAlpha = alphaValues.get(alphaValues.size() / 2);
 
-        Scalar medianColor = new Scalar(medianBlue, medianGreen, medianRed, medianAlpha);
-        Log.i("TAG MM", "Median color value: " + medianColor);
-
+        return new Scalar(medianBlue, medianGreen, medianRed, medianAlpha);
     }
 
+    private boolean IsBlackOrWhitePixel(double[] pixel) {
+        return (pixel[0] == 250 && pixel[1] == 250 && pixel[2] == 250)
+                || (pixel[0] == 0 && pixel[1] == 0 && pixel[2] == 0);
+    }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
