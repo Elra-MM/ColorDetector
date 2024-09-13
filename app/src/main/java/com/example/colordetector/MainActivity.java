@@ -2,12 +2,14 @@ package com.example.colordetector;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
 import org.opencv.android.CameraActivity;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
@@ -17,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class MainActivity extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
+public class MainActivity extends CameraActivity implements View.OnTouchListener, CameraBridgeViewBase.CvCameraViewListener2 {
 
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
@@ -54,7 +56,10 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     {
         super.onResume();
         if (mOpenCvCameraView != null)
+        {
             mOpenCvCameraView.enableView();
+            mOpenCvCameraView.setOnTouchListener(this);
+        }
     }
 
     @Override
@@ -71,21 +76,23 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     @Override
     public void onCameraViewStarted(int width, int height) {
+        mRgba = new Mat(height, width, CvType.CV_8UC4);
     }
 
     @Override
     public void onCameraViewStopped() {
+        mRgba.release();
     }
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-
-        FindColor(inputFrame);
-        return mRgba;
+        mRgba = inputFrame.rgba();
+        //FindColor(inputFrame);
+        return inputFrame.rgba();
     }
 
-    private void FindColor(CameraBridgeViewBase.CvCameraViewFrame inputFrame){
-        mRgba = inputFrame.rgba();
+    public boolean onTouch(View v, MotionEvent event){
+
         int cols = mRgba.cols();
         int rows = mRgba.rows();
 
@@ -134,7 +141,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         Scalar medianColor = new Scalar(medianBlue, medianGreen, medianRed, medianAlpha);
         Log.i("TAG MM", "Median color value: " + medianColor);
-
+        return false; // don't need subsequent touch events
     }
 
 
