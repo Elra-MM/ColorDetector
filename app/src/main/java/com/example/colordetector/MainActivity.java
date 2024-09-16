@@ -35,6 +35,9 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private Mat mRgba;
     private Mat mCIELab;
 
+
+    HashMap<String, List<Double>> colorSet = new HashMap<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,21 +58,20 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         try {
             AssetManager assetManager = getAssets();
-            InputStream inputStream = assetManager.open("dataset_colors.csv");
-            CSVReader reader = new CSVReader(new InputStreamReader(inputStream));
-            List<String[]> fileLines = reader.readAll();
-            for (String[] line : fileLines) {
-                for (String cell : line) {
-                    System.out.print(cell + " ");
-                }
-                System.out.println();
-            }
-            Log.i("TAG MM", " File count = " + fileLines.size());
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.e("TAG MM", "The specified file was not found : " + e.getMessage());
-        }
+            InputStream inputStream = assetManager.open("colorset.csv");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+            reader.readLine(); // skip the first line
+            String line;
 
+            while ((line = reader.readLine()) != null) {
+                String[] elt = line.split(";");
+                colorSet.put(elt[8], new ArrayList<>(Arrays.asList(Double.parseDouble(elt[4]), Double.parseDouble(elt[5]), Double.parseDouble(elt[6]))));
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("TAG MM", "The specified file was not found: " + e.getMessage());
+        }
     }
 
 
@@ -123,8 +125,23 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         Scalar medianColor = ComputeMedianCIE(mCIELab.submat(blackRect));
         PrintMedian(medianColor);
+        String medianColorName = GetName(medianColor);
 
         return mRgba;
+    }
+
+    private String GetName(Scalar medianColor) {
+        int min = Integer.MAX_VALUE;
+        String name = "";
+        for (String key : colorSet.keySet()) {
+            List<Double> color = colorSet.get(key);
+            int distance = (int) Math.sqrt(Math.pow(color.get(0) - medianColor.val[0], 2) + Math.pow(color.get(1) - medianColor.val[1], 2) + Math.pow(color.get(2) - medianColor.val[2], 2));
+            if (distance < min) {
+                min = distance;
+                name = key;
+            }
+        }
+        return name;
     }
 
     private void Rgba2CIELab(Mat mRgba, Mat mCIELab) {
