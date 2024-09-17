@@ -69,27 +69,29 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (OpenCVLoader.initLocal())
-            Log.i("Main", "OpenCV init success");
-        else {
-            Log.e("Main", "OpenCV init failed");
-            (Toast.makeText(this, "OpenCV initialization failed!", Toast.LENGTH_LONG)).show();
-            return;
-        }
+        if (!InitOpenCV()) return;
 
         setContentView(R.layout.activity_main);
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
-        } else {
-            if (isCameraAvailable()) {
-                initializeCamera();
-            } else {
-                Toast.makeText(this, "It seems that your device does not support camera (or it is locked). Application will be closed.", Toast.LENGTH_LONG).show();
-                finish();
-            }
-        }
+        AskCameraPermission();
 
+        CreateColorSet();
+    }
+
+    private boolean InitOpenCV() {
+        if (OpenCVLoader.initLocal())
+        {
+            Log.i("Main", "OpenCV init success");
+            return true;
+        }
+        else {
+            Log.e("Main", "OpenCV init failed");
+            (Toast.makeText(this, "OpenCV initialization failed!", Toast.LENGTH_LONG)).show();
+            return false;
+        }
+    }
+
+    private void CreateColorSet() {
         try {
             AssetManager assetManager = getAssets();
             InputStream inputStream = assetManager.open("colorset.csv");
@@ -105,6 +107,19 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         } catch (IOException e) {
             e.printStackTrace();
             Log.e("TAG MM", "The specified file was not found: " + e.getMessage());
+        }
+    }
+
+    private void AskCameraPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
+        } else {
+            if (isCameraAvailable()) {
+                initializeCamera();
+            } else {
+                Toast.makeText(this, "It seems that your device does not support camera (or it is locked). Application will be closed.", Toast.LENGTH_LONG).show();
+                finish();
+            }
         }
     }
 
