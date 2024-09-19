@@ -9,6 +9,8 @@ import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,6 +31,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 200;
     private CameraBridgeViewBase mOpenCvCameraView;
     private ColorCalculator colorCalculator;
+    Window window;
 
     private final String TAG = "MainActivity";
 
@@ -39,6 +42,9 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         if (!initOpenCV()) return;
 
         setContentView(R.layout.activity_main);
+        window = getWindow();
+        // Keep the screen on
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         askCameraPermission();
 
@@ -116,6 +122,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         super.onPause();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
+
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
@@ -123,6 +131,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         super.onResume();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.enableView();
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
@@ -135,6 +144,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         super.onDestroy();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
