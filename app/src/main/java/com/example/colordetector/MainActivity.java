@@ -54,7 +54,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private Mat mCIELab;
 
 
-    HashMap<String, List<Double>> colorSet = new HashMap<>();
+    HashMap<String, List<Double>> colorSetCIE = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +92,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
             while ((line = reader.readLine()) != null) {
                 String[] elt = line.split(";");
-                colorSet.put(elt[8], new ArrayList<>(Arrays.asList(Double.parseDouble(elt[4]), Double.parseDouble(elt[5]), Double.parseDouble(elt[6]))));
+                colorSetCIE.put(elt[8], new ArrayList<>(Arrays.asList(Double.parseDouble(elt[4]), Double.parseDouble(elt[5]), Double.parseDouble(elt[6]))));
             }
             reader.close();
         } catch (IOException e) {
@@ -189,31 +189,50 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     public void onCameraViewStopped() {
     }
 
+    private int frameCounter = 0;
+    private static final int FRAME_INTERVAL = 30; // Call the method every 30 frames
+    String medianColorName = "";
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        frameCounter++;
         mRgba = inputFrame.rgba();
 
-        Point centerPoint = GetCenterPoint();
-
-        Rect blackRect = DefineBlackRect(centerPoint);
-
-        DrawRectangles(centerPoint, blackRect);
-
-        Rgba2CIELab(mRgba, mCIELab);
-        Mat sub =mCIELab.submat(blackRect);
-        Scalar medianColor = ComputeMedianCIE(sub);
-
-        String medianColorName = GetName(medianColor);
+        Rect blackRect = DrawRectangles();
+        if (frameCounter >= FRAME_INTERVAL) {
+            ProcessFrame(blackRect);
+            frameCounter = 0;
+        }
         Print(medianColorName);
-
         return mRgba;
+    }
+
+    private void ProcessFrame(Rect blackRect) {
+        Rgba2CIELab(mRgba, mCIELab);
+        Mat sub = mCIELab.submat(blackRect);
+        Scalar medianColor = ComputeMedianCIE(sub);
+        //Scalar averageColor = ComputeAverageCIE(sub);
+        medianColorName = GetNameCIE(medianColor);
+    }
+
+    private String GetNameCIE(Scalar medianColor) {
+        int min = Integer.MAX_VALUE;
+        String name = "";
+        for (String key : colorSetCIE.keySet()) {
+            List<Double> color = colorSetCIE.get(key);
+            int distance = (int) Math.sqrt(Math.pow(color.get(0) - medianColor.val[0], 2) + Math.pow(color.get(1) - medianColor.val[1], 2) + Math.pow(color.get(2) - medianColor.val[2], 2));
+            if (distance < min) {
+                min = distance;
+                name = key;
+            }
+        }
+        return name;
     }
 
     private String GetName(Scalar medianColor) {
         int min = Integer.MAX_VALUE;
         String name = "";
-        for (String key : colorSet.keySet()) {
-            List<Double> color = colorSet.get(key);
+        for (String key : colorSetCIE.keySet()) {
+            List<Double> color = colorSetCIE.get(key);
             int distance = (int) Math.sqrt(Math.pow(color.get(0) - medianColor.val[0], 2) + Math.pow(color.get(1) - medianColor.val[1], 2) + Math.pow(color.get(2) - medianColor.val[2], 2));
             if (distance < min) {
                 min = distance;
@@ -246,7 +265,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         // Set up the paint with desired attributes
         Paint paint = new Paint();
         paint.setColor(android.graphics.Color.BLACK);
-        paint.setTextSize(120);
+        paint.setTextSize(80);
         paint.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
         paint.setAntiAlias(true);
 
@@ -291,15 +310,29 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         return new Rect((int) (centerPoint.x - blackRectWidth * 0.5), (int) (centerPoint.y - blackRectHeight * 0.5), blackRectWidth, blackRectHeight);
     }
 
-    private void DrawRectangles(Point centerPoint, Rect blackRect) {
-        int whiteRectWidth = blackRect.width + 50;
-        int whiteRectHeight = blackRect.height + 50;
-        int thichness = 25;
+    private Rect DrawRectangles() {
+        int frameWidth = mRgba.cols();
+        int frameHeight = mRgba.rows();
 
+        // Define the size of the rectangles relative to the frame size
+        int blackRectWidth = frameWidth / 4;
+        int blackRectHeight = frameHeight / 4;
+        int whiteRectWidth = blackRectWidth + 50;
+        int whiteRectHeight = blackRectHeight + 50;
+        int thickness = 25;
+
+        Point centerPoint = new Point(frameWidth * 0.5, frameHeight * 0.5);
+
+        // Update the black rectangle based on the new size
+        Rect blackRect = new Rect((int) (centerPoint.x - blackRectWidth * 0.5), (int) (centerPoint.y - blackRectHeight * 0.5), blackRectWidth, blackRectHeight);
+
+        // Define the white rectangle based on the black rectangle
         Rect whiteRect = new Rect((int) (centerPoint.x - whiteRectWidth * 0.5), (int) (centerPoint.y - whiteRectHeight * 0.5), whiteRectWidth, whiteRectHeight);
 
-        Imgproc.rectangle(mRgba, whiteRect, new Scalar(255, 255, 255), thichness);
-        Imgproc.rectangle(mRgba, blackRect, new Scalar(0, 0, 0), thichness);
+        // Draw the rectangles on the frame
+        Imgproc.rectangle(mRgba, whiteRect, new Scalar(255, 255, 255), thickness);
+        Imgproc.rectangle(mRgba, blackRect, new Scalar(0, 0, 0), thickness);
+        return blackRect;
     }
 
     private Scalar ComputeMedianCIE(Mat roiMat) {
