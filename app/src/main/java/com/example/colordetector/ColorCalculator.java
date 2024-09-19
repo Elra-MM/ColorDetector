@@ -8,6 +8,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,21 +26,36 @@ import static org.opencv.imgproc.Imgproc.cvtColor;
 
 public class ColorCalculator {
 
-    private final List<Mat> mRgbaList;
+    private final List<Mat> subRgbaList;
     private final String TAG = "ColorCalculator";
 
     private Mat mCIELab;
     HashMap<String, List<Double>> colorSetCIE = new HashMap<>();
+    private String medianName = "";
+    protected String getMedianName(){
+        subRgbaList.clear();
+        return medianName;
+    }
 
-    public ColorCalculator(AssetManager assets) {
-        mRgbaList = new ArrayList<>();
+    protected ColorCalculator(AssetManager assets) {
+        subRgbaList = new ArrayList<>();
         mCIELab = new Mat();
         createColorSet(assets);
     }
 
-    public void setNewFrame(Mat mRgba) {
-        mRgbaList.add(mRgba);
+    protected void setNewFrame(Mat subRgba) {
+        subRgbaList.add(subRgba);
     }
+
+    protected void calculateMedian() {
+        Mat lastRgba = subRgbaList.get(subRgbaList.size() - 1);
+        Imgproc.medianBlur(lastRgba, lastRgba, 5);
+        rgba2CIELab(lastRgba, mCIELab); //TODO maybe don't take only the last rgba
+
+        Scalar medianColor = computeMedianCIE(mCIELab);
+        medianName = getNameCIE(medianColor);
+    }
+
     private void createColorSet(AssetManager assets) {
         try {
             InputStream inputStream = assets.open("colorset.csv");
@@ -56,13 +72,6 @@ public class ColorCalculator {
             e.printStackTrace();
             Log.e(TAG, "The specified file was not found: " + e.getMessage());
         }
-    }
-
-    protected String getMedianName(Rect blackRect){
-        rgba2CIELab(mRgbaList.get(mRgbaList.size()-1), mCIELab); //TODO maybe don't take only the last rgba
-        Mat sub = mCIELab.submat(blackRect);
-        Scalar medianColor = computeMedianCIE(sub);
-        return getNameCIE(medianColor);
     }
 
     private void rgba2CIELab(Mat mRgba, Mat mCIELab) {
@@ -120,5 +129,4 @@ public class ColorCalculator {
         }
         return name;
     }
-
 }
