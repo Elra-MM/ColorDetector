@@ -6,7 +6,6 @@ import android.util.Log;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
@@ -24,36 +23,65 @@ import java.util.List;
 import static org.opencv.imgproc.Imgproc.COLOR_RGB2Lab;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
+/// This class calculate the median color of the Mat each frame and then calculate the average of
+// all the medians to get the final color's name
+// To do that, it convert the color from RGB to CIELab and then find the closest color in the
+// colorset.csv file and take its name
+
 public class ColorCalculator {
 
-    private final List<Mat> subRgbaList;
+    private List<Scalar> mediansColor;
     private final String TAG = "ColorCalculator";
 
-    private Mat mCIELab;
+    private final Mat mCIELab;
     HashMap<String, List<Double>> colorSetCIE = new HashMap<>();
     private String medianName = "";
-    protected String getMedianName(){
-        subRgbaList.clear();
-        return medianName;
-    }
+
 
     protected ColorCalculator(AssetManager assets) {
-        subRgbaList = new ArrayList<>();
         mCIELab = new Mat();
         createColorSet(assets);
     }
 
-    protected void setNewFrame(Mat subRgba) {
-        subRgbaList.add(subRgba);
+    protected String getMedianName() {
+        return medianName;
     }
 
-    protected void calculateMedian() {
-        Mat lastRgba = subRgbaList.get(subRgbaList.size() - 1);
-        Imgproc.medianBlur(lastRgba, lastRgba, 5);
-        rgba2CIELab(lastRgba, mCIELab); //TODO maybe don't take only the last rgba
+    protected void setNewFrame(Mat newRgba) {
+        if (newRgba == null || newRgba.empty()) {
+            Log.e(TAG, "New frame is null or empty.");
+            return;
+        }
+        if (mediansColor == null) {
+            mediansColor = new ArrayList<>();
+        }
+        mediansColor.add(calculateMedian(newRgba));
+    }
 
-        Scalar medianColor = computeMedianCIE(mCIELab);
-        medianName = getNameCIE(medianColor);
+    protected void computeNewName() {
+        medianName = getNameCIE(calculateAverage(mediansColor));
+        mediansColor.clear();
+    }
+
+    protected Scalar calculateAverage(List<Scalar> scalars) {
+        if (scalars == null || scalars.isEmpty()) {
+            throw new IllegalArgumentException("The list of scalars is null or empty.");
+        }
+
+        double sumL = 0, sumA = 0, sumB = 0;
+        for (Scalar scalar : scalars) {
+            sumL += scalar.val[0];
+            sumA += scalar.val[1];
+            sumB += scalar.val[2];
+        }
+
+        int count = scalars.size();
+        return new Scalar(sumL / count, sumA / count, sumB / count);
+    }
+
+    private Scalar calculateMedian(Mat newRgba) {
+        rgba2CIELab(newRgba, mCIELab);
+        return computeMedianCIE(mCIELab);
     }
 
     private void createColorSet(AssetManager assets) {
@@ -75,14 +103,11 @@ public class ColorCalculator {
     }
 
     private void rgba2CIELab(Mat mRgba, Mat mCIELab) {
-        // Convert mRgba to floating-point type
-        Mat mRgbaFloat = new Mat();
-        mRgba.convertTo(mRgbaFloat, CvType.CV_32F);
-
-        // Normalize mRgba to the range [0, 1]
-        Core.normalize(mRgbaFloat, mRgbaFloat, 0, 1, Core.NORM_MINMAX);
-
-        cvtColor(mRgbaFloat, mCIELab, COLOR_RGB2Lab);
+        if (mRgba.empty()) {
+            Log.e(TAG, "Input matrix is empty, cannot convert to CIELab.");
+            return;
+        }
+        cvtColor(mRgba, mCIELab, COLOR_RGB2Lab);
     }
 
     private Scalar computeMedianCIE(Mat roiMat) {
@@ -93,7 +118,7 @@ public class ColorCalculator {
         for (int i = 0; i < roiMat.rows(); i++) {
             for (int j = 0; j < roiMat.cols(); j++) {
                 double[] pixel = roiMat.get(i, j);
-                if (pixel != null && isBlackOrWhitePixel(pixel)) {
+                if (pixel != null && isNotBlackOrWhitePixel(pixel)) {
                     lValues.add(pixel[0]);
                     aValues.add(pixel[1]);
                     bValues.add(pixel[2]);
@@ -111,7 +136,8 @@ public class ColorCalculator {
 
         return new Scalar(medianBlue, medianGreen, medianRed);
     }
-    private boolean isBlackOrWhitePixel(double[] pixel) {
+
+    private boolean isNotBlackOrWhitePixel(double[] pixel) {
         return (pixel[0] != 250 || pixel[1] != 250 || pixel[2] != 250)
                 && (pixel[0] != 0 || pixel[1] != 0 || pixel[2] != 0);
     }
@@ -129,4 +155,13 @@ public class ColorCalculator {
         }
         return name;
     }
+//    private Mat FinishCalculateAverageMat() {
+//        if (sumMat.empty()) {
+//            Log.e(TAG, "Sum matrix is empty, cannot calculate average.");
+//            return new Mat();
+//        }
+//        Mat averageMat = new Mat();
+//        Core.divide(sumMat, Scalar.all(nbFrames), averageMat);
+//        return averageMat;
+//    }
 }
