@@ -130,6 +130,11 @@ public class ColorCalculator {
         Collections.sort(aValues);
         Collections.sort(bValues);
 
+        if (lValues.isEmpty() || aValues.isEmpty() || bValues.isEmpty()) 
+        {
+            Log.w(TAG, "Empty frame, all pixels were black|white|null !");
+            return new Scalar(0, 0, 0);
+        }
         double medianBlue = lValues.get(lValues.size() / 2);
         double medianGreen = aValues.get(aValues.size() / 2);
         double medianRed = bValues.get(bValues.size() / 2);
