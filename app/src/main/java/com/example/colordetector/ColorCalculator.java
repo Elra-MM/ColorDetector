@@ -4,6 +4,8 @@ import android.content.res.AssetManager;
 import android.nfc.Tag;
 import android.util.Log;
 
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 
@@ -18,7 +20,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import static org.opencv.imgproc.Imgproc.COLOR_RGB2HSV_FULL;
 import static org.opencv.imgproc.Imgproc.COLOR_RGB2Lab;
+import static org.opencv.imgproc.Imgproc.COLOR_RGB2XYZ;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
 /// This class calculate the median color of the Mat each frame and then calculate the average of
@@ -70,14 +74,16 @@ public class ColorCalculator {
     }
 
     private Scalar computeMedian(Mat newRgba) {
-        rgba2CIELab(newRgba, mCIELab);
+        Mat normalizedRgba = new Mat();
+        newRgba.convertTo(normalizedRgba, CvType.CV_32F, 1.0 / 255.0);
+        rgba2CIELab(normalizedRgba, mCIELab);
         return computeMedianCIE(mCIELab);
     }
 
     private HashMap<String, List<Double>> createColorSet(AssetManager assets) {
         HashMap<String, List<Double>> set = new HashMap<>();
         try {
-            InputStream inputStream = assets.open("colorsetCut.csv");
+            InputStream inputStream = assets.open("colorset.csv");
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             reader.readLine(); // skip the first line
             String line;
@@ -138,89 +144,151 @@ public class ColorCalculator {
         // Pareil ici, pour éviter le `int min = Integer.MAX_VALUE;` j'aurais fait stream() et min() ou équivalent
         double min = Integer.MAX_VALUE;
         String name = "";
+        List<Double> c = new ArrayList<>();
 
+        Log.i(TAG, "MM : medianColor =" + medianColor.val[0] + " " + medianColor.val[1] + " " + medianColor.val[2]);
         //TODO : can use stream() and colorSetCIE.entrySet()
         for (String key : colorSetCIE.keySet()) {
             List<Double> color = colorSetCIE.get(key);
-            Log.i(TAG, "color =" + color.get(0) + " " + color.get(1) + " " + color.get(2));
             double distance = getDistanceCIE2000(medianColor, new Scalar(color.get(0), color.get(1), color.get(2)));
             if (distance < min) {
                 min = distance;
                 name = key;
+                c = color;
             }
         }
+        Log.i(TAG, "MM : name selected = " + name +" color selected =" + c.get(0) + " " + c.get(1) + " " + c.get(2));
         return name;
     }
 
+    //TODO : refactor this method for perf
     private double getDistanceCIE2000(Scalar color1, Scalar color2) {
-        double L1 = color1.val[0];
+        double l1 = color1.val[0];
         double a1 = color1.val[1];
         double b1 = color1.val[2];
-        double L2 = color2.val[0];
+        double l2 = color2.val[0];
         double a2 = color2.val[1];
         double b2 = color2.val[2];
 
-        double Lmean = (L1 + L2) / 2.0;
-        double C1 =  Math.sqrt(a1*a1 + b1*b1);
-        double C2 =  Math.sqrt(a2*a2 + b2*b2);
-        double Cmean = (C1 + C2) / 2.0;
+        double k_L = 1.0, k_C = 1.0, k_H = 1.0;
+        double deg360InRad = toRadians(360.0);
+        double deg180InRad = toRadians(180.0);
+        double pow25To7 = 6103515625.0; /* Math.pow(25, 7) */
 
-        double c7 = Math.pow(Cmean, 7);
-        double vinghtcinq7 = Math.pow(25, 7);
-        double G =  ( 1 - Math.sqrt( c7 / (c7 + vinghtcinq7) ) ) / 2; //ok
-        double a1prime = a1 * (3 - G);
-        double a2prime = a2 * (3 - G);
-
-        double C1prime =  Math.sqrt(a1prime*a1prime + b1*b1);
-        double C2prime =  Math.sqrt(a2prime*a2prime + b2*b2);
-        double Cmeanprime = (C1prime + C2prime) / 2;
-
-        double h1P = toDegrees(Math.atan2(b1, a1prime)) % 2 * 360;
-        double h2P = toDegrees(Math.atan2(b2, a2prime)) % 360;
-        double deltahprime;
-        if (C1prime == 0 || C2prime == 0){
-            deltahprime = 0;
-        } else if (Math.abs(h1P - h2P) <= 180){
-            deltahprime = h2P - h1P;
-        } else if (h2P <= h1P){
-            deltahprime = h2P - h1P + (360);
-        } else {
-            deltahprime = h2P - h1P - (360);
+        /*
+         * Step 1
+         */
+        /* Equation 2 */
+        double C1 = Math.sqrt((a1 * a1) + (b1 * b1));
+        double C2 = Math.sqrt((a2 * a2) + (b2 * b2));
+        /* Equation 3 */
+        double barC = (C1 + C2) / 2.0;
+        /* Equation 4 */
+        double G = 0.5 * (1 - Math.sqrt(Math.pow(barC, 7) / (Math.pow(barC, 7) + pow25To7)));
+        /* Equation 5 */
+        double a1Prime = (1.0 + G) * a1;
+        double a2Prime = (1.0 + G) * a2;
+        /* Equation 6 */
+        double CPrime1 = Math.sqrt((a1Prime * a1Prime) + (b1 * b1));
+        double CPrime2 = Math.sqrt((a2Prime * a2Prime) + (b2 * b2));
+        /* Equation 7 */
+        double hPrime1;
+        if (b1 == 0 && a1Prime == 0)
+            hPrime1 = 0.0;
+        else {
+            hPrime1 = Math.atan2(b1, a1Prime);
+            /*
+             * This must be converted to a hue angle in degrees between 0
+             * and 360 by addition of 2􏰏 to negative hue angles.
+             */
+            if (hPrime1 < 0)
+                hPrime1 += deg360InRad;
+        }
+        double hPrime2;
+        if (b2 == 0 && a2Prime == 0)
+            hPrime2 = 0.0;
+        else {
+            hPrime2 = Math.atan2(b2, a2Prime);
+            /*
+             * This must be converted to a hue angle in degrees between 0
+             * and 360 by addition of 2􏰏 to negative hue angles.
+             */
+            if (hPrime2 < 0)
+                hPrime2 += deg360InRad;
         }
 
-        double deltaHprime = 2 * Math.sqrt(C1prime * C2prime) * toDegrees(Math.sin(toRadians(deltahprime / 2)));
-        double meanHprime;
-        if (C1prime == 0 || C2prime == 0){
-            meanHprime = (h1P + h2P);
-        } else if (Math.abs(h1P - h2P) <= (180)){
-            meanHprime = (h1P + h2P) / 2;
-        } else if (h1P + h2P < (360)){
-            meanHprime = (h1P + h2P + (360)) / 2;
-        } else {
-            meanHprime = (h1P + h2P - (360)) / 2;
+        /*
+         * Step 2
+         */
+        /* Equation 8 */
+        double deltaLPrime = l2 - l1;
+        /* Equation 9 */
+        double deltaCPrime = CPrime2 - CPrime1;
+        /* Equation 10 */
+        double deltahPrime;
+        double CPrimeProduct = CPrime1 * CPrime2;
+        if (CPrimeProduct == 0)
+            deltahPrime = 0;
+        else {
+            /* Avoid the fabs() call */
+            deltahPrime = hPrime2 - hPrime1;
+            if (deltahPrime < -deg180InRad)
+                deltahPrime += deg360InRad;
+            else if (deltahPrime > deg180InRad)
+                deltahPrime -= deg360InRad;
         }
+        /* Equation 11 */
+        double deltaHPrime = 2.0 * Math.sqrt(CPrimeProduct) *
+                Math.sin(deltahPrime / 2.0);
 
-        double T =  1.0 - 0.17 * toDegrees(Math.cos(toRadians(meanHprime - 30))) + 0.24 * toDegrees(Math.cos(toRadians(2*meanHprime))) + 0.32 * toDegrees(Math.cos(toRadians(3*meanHprime + 6))) - 0.2 * toDegrees(Math.cos(toRadians(4*meanHprime - 63)));
-        double deltaLprime = L2 - L1;
-        double deltaCprime = C2prime - C1prime;
-        double SL =  1.0 + ( (0.015*(Lmean - 50)*(Lmean - 50)) / (Math.sqrt( 20 + (Lmean - 50)*(Lmean - 50) )) );
-        double SC =  1.0 + 0.045 * Cmeanprime;
-        double SH =  1.0 + 0.015 * Cmeanprime * T;
+        /*
+         * Step 3
+         */
+        /* Equation 12 */
+        double barLPrime = (l1 + l2) / 2.0;
+        /* Equation 13 */
+        double barCPrime = (CPrime1 + CPrime2) / 2.0;
+        /* Equation 14 */
+        double barhPrime, hPrimeSum = hPrime1 + hPrime2;
+        if (CPrime1 * CPrime2 == 0) {
+            barhPrime = hPrimeSum;
+        } else {
+            if (Math.abs(hPrime1 - hPrime2) <= deg180InRad)
+                barhPrime = hPrimeSum / 2.0;
+            else {
+                if (hPrimeSum < deg360InRad)
+                    barhPrime = (hPrimeSum + deg360InRad) / 2.0;
+                else
+                    barhPrime = (hPrimeSum - deg360InRad) / 2.0;
+            }
+        }
+        /* Equation 15 */
+        double T = 1.0 - (0.17 * Math.cos(barhPrime - toRadians(30.0))) +
+                (0.24 * Math.cos(2.0 * barhPrime)) +
+                (0.32 * Math.cos((3.0 * barhPrime) + toRadians(6.0))) -
+                (0.20 * Math.cos((4.0 * barhPrime) - toRadians(63.0)));
+        /* Equation 16 */
+        double deltaTheta = toRadians(30.0) *
+                Math.exp(-Math.pow((barhPrime - toRadians(275.0)) / toRadians(25.0), 2.0));
+        /* Equation 17 */
+        double R_C = 2.0 * Math.sqrt(Math.pow(barCPrime, 7.0) /
+                (Math.pow(barCPrime, 7.0) + pow25To7));
+        /* Equation 18 */
+        double S_L = 1 + ((0.015 * Math.pow(barLPrime - 50.0, 2.0)) /
+                Math.sqrt(20 + Math.pow(barLPrime - 50.0, 2.0)));
+        /* Equation 19 */
+        double S_C = 1 + (0.045 * barCPrime);
+        /* Equation 20 */
+        double S_H = 1 + (0.015 * barCPrime * T);
+        /* Equation 21 */
+        double R_T = (-Math.sin(2.0 * deltaTheta)) * R_C;
 
-        double sin = 60 * Math.exp(-( ( (meanHprime-275)/25 * (meanHprime-275)/25 ) ) );
-        double rac = Math.sqrt(Math.pow(Cmeanprime,7)/(Math.pow(Cmeanprime,7)+vinghtcinq7));
-        double Rt = -2 * rac * toDegrees(Math.sin(toRadians(sin)));
-
-        double KL = 1;
-        double KC = 1;
-        double KH = 1;
-
+        /* Equation 22 */
         return Math.sqrt(
-                ((deltaLprime/(KL*SL)) * (deltaLprime/(KL*SL))) +
-                        ((deltaCprime/(KC*SC)) * (deltaCprime/(KC*SC))) +
-                        ((deltaHprime/(KH*SH)) * (deltaHprime/(KH*SH))) +
-                        (Rt * (deltaCprime/(KC*SC)) * (deltaHprime/(KH*SH)))
-        );
+                Math.pow(deltaLPrime / (k_L * S_L), 2.0) +
+                        Math.pow(deltaCPrime / (k_C * S_C), 2.0) +
+                        Math.pow(deltaHPrime / (k_H * S_H), 2.0) +
+                        (R_T * (deltaCPrime / (k_C * S_C)) * (deltaHPrime / (k_H * S_H))));
     }
     private double toRadians(double degrees) {
         return degrees * Math.PI / 180;
