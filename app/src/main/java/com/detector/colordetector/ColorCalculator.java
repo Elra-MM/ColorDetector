@@ -135,11 +135,11 @@ public class ColorCalculator {
             Log.w(TAG, "Empty frame, all pixels were black|white|null !");
             return new Scalar(0, 0, 0);
         }
-        double medianBlue = lValues.get(lValues.size() / 2);
-        double medianGreen = aValues.get(aValues.size() / 2);
-        double medianRed = bValues.get(bValues.size() / 2);
+        double medianL = lValues.get(lValues.size() / 2);
+        double medianA = aValues.get(aValues.size() / 2);
+        double medianB = bValues.get(bValues.size() / 2);
 
-        return new Scalar(medianBlue, medianGreen, medianRed);
+        return new Scalar(medianL, medianA, medianB);
     }
 
     private boolean isNotBlackOrWhitePixel(double[] pixel) {
