@@ -83,7 +83,7 @@ public class ColorCalculator {
     private HashMap<String, List<Double>> createColorSet(AssetManager assets) {
         HashMap<String, List<Double>> set = new HashMap<>();
         try {
-            InputStream inputStream = assets.open("colorset.csv");
+            InputStream inputStream = assets.open("colorsetCut.csv");
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             reader.readLine(); // skip the first line
             String line;
@@ -141,23 +141,17 @@ public class ColorCalculator {
     }
 
     private String getNameCIE(Scalar medianColor) {
-        // Pareil ici, pour éviter le `int min = Integer.MAX_VALUE;` j'aurais fait stream() et min() ou équivalent
         double min = Integer.MAX_VALUE;
         String name = "";
-        List<Double> c = new ArrayList<>();
 
-        Log.i(TAG, "MM : medianColor =" + medianColor.val[0] + " " + medianColor.val[1] + " " + medianColor.val[2]);
-        //TODO : can use stream() and colorSetCIE.entrySet()
         for (String key : colorSetCIE.keySet()) {
             List<Double> color = colorSetCIE.get(key);
             double distance = getDistanceCIE2000(medianColor, new Scalar(color.get(0), color.get(1), color.get(2)));
             if (distance < min) {
                 min = distance;
                 name = key;
-                c = color;
             }
         }
-        Log.i(TAG, "MM : name selected = " + name +" color selected =" + c.get(0) + " " + c.get(1) + " " + c.get(2));
         return name;
     }
 
