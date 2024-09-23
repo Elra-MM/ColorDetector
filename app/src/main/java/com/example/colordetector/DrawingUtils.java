@@ -22,6 +22,8 @@ public class DrawingUtils {
     private Paint backgroundPaint = new Paint();
     private final int PADDING = 20;
     private final int RECTANGLE_THICKNESS = 25;
+    private static final int RECT_WIDTH = 250; // Fixed width in pixels
+    private static final int RECT_HEIGHT = 250; // Fixed height in pixels
 
     protected DrawingUtils() {
         // Set up the paint with desired attributes
@@ -66,23 +68,20 @@ public class DrawingUtils {
         Utils.bitmapToMat(bitmap, mRgba);
     }
 
-    public Rect drawRectangles(Mat mRgba) {
-        int frameWidth = mRgba.cols();
-        int frameHeight = mRgba.rows();
+    public Rect drawRectangles(Mat frame) {
+        int width = frame.width();
+        int height = frame.height();
 
-        // Define the size of the rectangles relative to the frame size
-        int blackRectWidth = frameWidth / 4;
-        int blackRectHeight = frameHeight / 4;
-        int whiteRectWidth = blackRectWidth + 50;
-        int whiteRectHeight = blackRectHeight + 50;
+        int whiteRectWidth = RECT_WIDTH + 50;
+        int whiteRectHeight = RECT_HEIGHT + 50;
 
-        Point centerPoint = new Point(frameWidth * 0.5, frameHeight * 0.5);
-        Rect blackRect = getRect(centerPoint, blackRectWidth, blackRectHeight);
+        Point centerPoint = new Point(width * 0.5, height * 0.5);
+        Rect blackRect = getRect(centerPoint, RECT_WIDTH, RECT_HEIGHT);
         Rect whiteRect = getRect(centerPoint, whiteRectWidth, whiteRectHeight);
 
         // Draw the rectangles on the frame
-        Imgproc.rectangle(mRgba, whiteRect, new Scalar(255, 255, 255), RECTANGLE_THICKNESS);
-        Imgproc.rectangle(mRgba, blackRect, new Scalar(0, 0, 0), RECTANGLE_THICKNESS);
+        Imgproc.rectangle(frame, whiteRect, new Scalar(255, 255, 255), RECTANGLE_THICKNESS);
+        Imgproc.rectangle(frame, blackRect, new Scalar(0, 0, 0), RECTANGLE_THICKNESS);
         return blackRect;
     }
 
