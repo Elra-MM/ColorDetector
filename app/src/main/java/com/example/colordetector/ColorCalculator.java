@@ -175,54 +175,41 @@ public class ColorCalculator {
         double C2prime =  Math.sqrt(a2prime*a2prime + b2*b2);
         double Cmeanprime = (C1prime + C2prime) / 2;
 
-        double h1P = Math.atan2(b1, a1prime) % 2 * toRadians(360);
-        double h2P = Math.atan2(b2, a2prime) % toRadians(360);
+        double h1P = toDegrees(Math.atan2(b1, a1prime)) % 2 * 360;
+        double h2P = toDegrees(Math.atan2(b2, a2prime)) % 360;
         double deltahprime;
         if (C1prime == 0 || C2prime == 0){
             deltahprime = 0;
-        } else if (Math.abs(h1P - h2P) <= toRadians(180)){
+        } else if (Math.abs(h1P - h2P) <= 180){
             deltahprime = h2P - h1P;
         } else if (h2P <= h1P){
-            deltahprime = h2P - h1P + toRadians(360);
+            deltahprime = h2P - h1P + (360);
         } else {
-            deltahprime = h2P - h1P - toRadians(360);
+            deltahprime = h2P - h1P - (360);
         }
 
-        double deltaHprime = 2 * Math.sqrt(C1prime * C2prime) * Math.sin(deltahprime / 2);
+        double deltaHprime = 2 * Math.sqrt(C1prime * C2prime) * toDegrees(Math.sin(toRadians(deltahprime / 2)));
         double meanHprime;
         if (C1prime == 0 || C2prime == 0){
             meanHprime = (h1P + h2P);
-        } else if (Math.abs(h1P - h2P) <= toRadians(180)){
+        } else if (Math.abs(h1P - h2P) <= (180)){
             meanHprime = (h1P + h2P) / 2;
-        } else if (h1P + h2P < toRadians(360)){
-            meanHprime = (h1P + h2P + toRadians(360)) / 2;
+        } else if (h1P + h2P < (360)){
+            meanHprime = (h1P + h2P + (360)) / 2;
         } else {
-            meanHprime = (h1P + h2P - toRadians(360)) / 2;
+            meanHprime = (h1P + h2P - (360)) / 2;
         }
 
-        double T =  1.0 - 0.17 * Math.cos(meanHprime - toRadians(30)) + 0.24 * Math.cos(2*meanHprime) + 0.32 * Math.cos(3*meanHprime + toRadians(6)) - 0.2 * Math.cos(4*meanHprime - toRadians(63));
-
-
-//        double h1prime =  Math.atan2(b1, a1prime) + 2*Math.PI * (Math.atan2(b1, a1prime)<0 ? 1 : 0);
-//        double h2prime =  Math.atan2(b2, a2prime) + 2*Math.PI * (Math.atan2(b2, a2prime)<0 ? 1 : 0);
-//        double Hmeanprime =  ((Math.abs(h1prime - h2prime) > Math.PI) ? (h1prime + h2prime + 2*Math.PI) / 2 : (h1prime + h2prime) / 2);
-//
-//
-//        double deltahprime =  ((Math.abs(h1prime - h2prime) <= Math.PI) ? h2prime - h1prime : (h2prime <= h1prime) ? h2prime - h1prime + 2*Math.PI : h2prime - h1prime - 2*Math.PI);
-//
+        double T =  1.0 - 0.17 * toDegrees(Math.cos(toRadians(meanHprime - 30))) + 0.24 * toDegrees(Math.cos(toRadians(2*meanHprime))) + 0.32 * toDegrees(Math.cos(toRadians(3*meanHprime + 6))) - 0.2 * toDegrees(Math.cos(toRadians(4*meanHprime - 63)));
         double deltaLprime = L2 - L1;
         double deltaCprime = C2prime - C1prime;
-//        double deltaHprime =  2.0 * Math.sqrt(C1prime*C2prime) * Math.sin(deltahprime / 2.0);
         double SL =  1.0 + ( (0.015*(Lmean - 50)*(Lmean - 50)) / (Math.sqrt( 20 + (Lmean - 50)*(Lmean - 50) )) );
         double SC =  1.0 + 0.045 * Cmeanprime;
         double SH =  1.0 + 0.015 * Cmeanprime * T;
 
-        double sin = toRadians(60) *Math.exp(-( (meanHprime-toRadians(275)/toRadians(25)) * (meanHprime-toRadians(275)/toRadians(25)) ));
+        double sin = 60 * Math.exp(-( ( (meanHprime-275)/25 * (meanHprime-275)/25 ) ) );
         double rac = Math.sqrt(Math.pow(Cmeanprime,7)/(Math.pow(Cmeanprime,7)+vinghtcinq7));
-        double Rt = -2*rac*Math.sin(sin);
-//        double deltaTheta =  (30 * Math.PI / 180) * Math.exp(-((180/Math.PI*Hmeanprime-275)/25)*((180/Math.PI*Hmeanprime-275)/25));
-//        double RC =  (2 * Math.sqrt(Math.pow(Cmeanprime, 7) / (Math.pow(Cmeanprime, 7) + Math.pow(25, 7))));
-//        double RT =  (-RC * Math.sin(2 * deltaTheta));
+        double Rt = -2 * rac * toDegrees(Math.sin(toRadians(sin)));
 
         double KL = 1;
         double KC = 1;
@@ -237,5 +224,8 @@ public class ColorCalculator {
     }
     private double toRadians(double degrees) {
         return degrees * Math.PI / 180;
+    }
+    public static double toDegrees(double radians) {
+        return radians * 180 / Math.PI;
     }
 }
