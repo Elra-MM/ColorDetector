@@ -38,7 +38,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private CameraBridgeViewBase mOpenCvCameraView;
     private ColorCalculator colorCalculator;
     private DrawingUtils drawingUtils;
-    Window window;
+    private Window window;
+    private ScheduledExecutorService scheduledExecutorService;
 
     private final String TAG = "MainActivity";
 
@@ -64,9 +65,13 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         colorCalculator = new ColorCalculator(getAssets());
         drawingUtils = new DrawingUtils();
 
-        ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
-        ses.scheduleWithFixedDelay(() -> {
-            colorCalculator.computeNewName();
+        scheduledExecutorService = Executors.newScheduledThreadPool(1);
+        scheduledExecutorService.scheduleWithFixedDelay(() -> {
+            try{
+                colorCalculator.computeNewName();
+            }catch (Exception e){
+                Log.e(TAG, "Error in the scheduled task", e);
+            }
         }, 2, 1, TimeUnit.SECONDS);
     }
 
@@ -165,6 +170,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        scheduledExecutorService.shutdown();
     }
 
     @Override
