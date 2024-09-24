@@ -2,6 +2,10 @@ package com.example.colordetector;
 
 import android.annotation.SuppressLint;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,19 +16,30 @@ import com.opencsv.CSVReader;
 import org.opencv.android.CameraActivity;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import static org.opencv.imgproc.Imgproc.COLOR_RGB2Lab;
 import static org.opencv.imgproc.Imgproc.cvtColor;
@@ -124,8 +139,9 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         Rgba2CIELab(mRgba, mCIELab);
 
         Scalar medianColor = ComputeMedianCIE(mCIELab.submat(blackRect));
-        PrintMedian(medianColor);
+
         String medianColorName = GetName(medianColor);
+        Print(medianColorName);
 
         return mRgba;
     }
@@ -156,16 +172,47 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     }
 
 
-    private void PrintMedian(Scalar medianColor) {
-        @SuppressLint("DefaultLocale") String medianColorText = String.format("Median Color: [%.2f, %.2f, %.2f]",
-                medianColor.val[0], medianColor.val[1],
-                medianColor.val[2]);
+    private void Print(String name) {
+        // Create a bitmap from the Mat object
+        Bitmap bitmap = Bitmap.createBitmap(mRgba.cols(), mRgba.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(mRgba, bitmap);
 
-        Point textPosition = new Point(0, mRgba.rows() / 6);
+        // Create a canvas to draw on the bitmap
+        Canvas canvas = new Canvas(bitmap);
 
-        // Draw the text on the Mat object
-        Imgproc.putText(mRgba, medianColorText, textPosition, Imgproc.FONT_HERSHEY_SIMPLEX,
-                2.0, new Scalar(0, 0, 0), 5);
+        // Set up the paint with desired attributes
+        Paint paint = new Paint();
+        paint.setColor(android.graphics.Color.BLACK);
+        paint.setTextSize(120);
+        paint.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+        paint.setAntiAlias(true);
+
+        // Calculate the size of the text
+        android.graphics.Rect textBounds = new android.graphics.Rect();
+        paint.getTextBounds(name, 0, name.length(), textBounds);
+
+        // Calculate the position for the text and background
+        float x = (bitmap.getWidth() - textBounds.width()) / 2;
+        float y = textBounds.height() + 20; // 20 pixels padding from the top
+
+        // Add padding to the rectangle
+        int padding = 20;
+        float rectLeft = x - padding;
+        float rectTop = y - textBounds.height() - padding;
+        float rectRight = x + textBounds.width() + padding;
+        float rectBottom = y + padding;
+
+        // Draw a white rectangle behind the text
+        Paint backgroundPaint = new Paint();
+        backgroundPaint.setColor(android.graphics.Color.WHITE);
+        backgroundPaint.setStyle(Paint.Style.FILL);
+        canvas.drawRect(rectLeft, rectTop, rectRight, rectBottom, backgroundPaint);
+
+        // Draw the text on the canvas
+        canvas.drawText(name, x, y, paint);
+
+        // Convert the bitmap back to a Mat object
+        Utils.bitmapToMat(bitmap, mRgba);
     }
 
     private Point GetCenterPoint() {
