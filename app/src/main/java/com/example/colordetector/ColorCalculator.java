@@ -40,6 +40,7 @@ public class ColorCalculator {
 
     protected ColorCalculator(AssetManager assets) {
         mCIELab = new Mat();
+        mediansColor = new ArrayList<>();
         createColorSet(assets);
     }
 
@@ -51,9 +52,6 @@ public class ColorCalculator {
         if (newRgba == null || newRgba.empty()) {
             Log.e(TAG, "New frame is null or empty.");
             return;
-        }
-        if (mediansColor == null) {
-            mediansColor = new ArrayList<>();
         }
         mediansColor.add(calculateMedian(newRgba));
     }
