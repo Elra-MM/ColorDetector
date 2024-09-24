@@ -1,7 +1,6 @@
 package com.example.colordetector;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
@@ -9,7 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
-import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
@@ -22,8 +20,6 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.opencsv.CSVReader;
-
 import org.opencv.android.CameraActivity;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
@@ -34,23 +30,18 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 
 import static org.opencv.imgproc.Imgproc.COLOR_RGB2Lab;
 import static org.opencv.imgproc.Imgproc.cvtColor;
@@ -209,8 +200,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         DrawRectangles(centerPoint, blackRect);
 
         Rgba2CIELab(mRgba, mCIELab);
-
-        Scalar medianColor = ComputeMedianCIE(mCIELab.submat(blackRect));
+        Mat sub =mCIELab.submat(blackRect);
+        Scalar medianColor = ComputeMedianCIE(sub);
 
         String medianColorName = GetName(medianColor);
         Print(medianColorName);
@@ -295,19 +286,20 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     }
 
     private Rect DefineBlackRect(Point centerPoint) {
-        int blackRectWidth = 100;
-        int blackRectHeight = 100;
-        return new Rect((int) (centerPoint.x - blackRectWidth / 2), (int) (centerPoint.y - blackRectHeight / 2), blackRectWidth, blackRectHeight);
+        int blackRectWidth = 300;
+        int blackRectHeight = 300;
+        return new Rect((int) (centerPoint.x - blackRectWidth * 0.5), (int) (centerPoint.y - blackRectHeight * 0.5), blackRectWidth, blackRectHeight);
     }
 
     private void DrawRectangles(Point centerPoint, Rect blackRect) {
-        int whiteRectWidth = blackRect.width + 10;
-        int whiteRectHeight = blackRect.height + 10;
+        int whiteRectWidth = blackRect.width + 50;
+        int whiteRectHeight = blackRect.height + 50;
+        int thichness = 25;
 
-        Rect whiteRect = new Rect((int) (centerPoint.x - whiteRectWidth / 2), (int) (centerPoint.y - whiteRectHeight / 2), whiteRectWidth, whiteRectHeight);
+        Rect whiteRect = new Rect((int) (centerPoint.x - whiteRectWidth * 0.5), (int) (centerPoint.y - whiteRectHeight * 0.5), whiteRectWidth, whiteRectHeight);
 
-        Imgproc.rectangle(mRgba, whiteRect, new Scalar(255, 255, 255), 5);
-        Imgproc.rectangle(mRgba, blackRect, new Scalar(0, 0, 0), 5);
+        Imgproc.rectangle(mRgba, whiteRect, new Scalar(255, 255, 255), thichness);
+        Imgproc.rectangle(mRgba, blackRect, new Scalar(0, 0, 0), thichness);
     }
 
     private Scalar ComputeMedianCIE(Mat roiMat) {
@@ -318,7 +310,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         for (int i = 0; i < roiMat.rows(); i++) {
             for (int j = 0; j < roiMat.cols(); j++) {
                 double[] pixel = roiMat.get(i, j);
-                if (pixel != null ) {
+                if (pixel != null && IsBlackOrWhitePixel(pixel)) {
                     lValues.add(pixel[0]);
                     aValues.add(pixel[1]);
                     bValues.add(pixel[2]);
@@ -346,7 +338,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         for (int i = 0; i < roiMat.rows(); i++) {
             for (int j = 0; j < roiMat.cols(); j++) {
                 double[] pixel = roiMat.get(i, j);
-                if (pixel != null && !IsBlackOrWhitePixel(pixel)) {
+                if (pixel != null && IsBlackOrWhitePixel(pixel)) {
                     blueValues.add(pixel[0]);
                     greenValues.add(pixel[1]);
                     redValues.add(pixel[2]);
@@ -369,8 +361,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     }
 
     private boolean IsBlackOrWhitePixel(double[] pixel) {
-        return (pixel[0] == 250 && pixel[1] == 250 && pixel[2] == 250)
-                || (pixel[0] == 0 && pixel[1] == 0 && pixel[2] == 0);
+        return (pixel[0] != 250 || pixel[1] != 250 || pixel[2] != 250)
+                && (pixel[0] != 0 || pixel[1] != 0 || pixel[2] != 0);
     }
 
 }
