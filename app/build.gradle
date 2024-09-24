@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'com.example.colordetector'
+    namespace 'com.detector.colordetector'
     compileSdk 34
 
     defaultConfig {
