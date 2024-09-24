@@ -54,7 +54,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         colorCalculator = new ColorCalculator(getAssets());
         ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
         ses.scheduleWithFixedDelay(() -> {
-            colorCalculator.calculateMedian();
+            colorCalculator.computeNewName();
         }, 2, 1, TimeUnit.SECONDS);
     }
 
@@ -168,6 +168,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         Rect blackRect = DrawingUtils.drawRectangles(mRgba);
         Mat sub = mRgba.submat(blackRect);
+
         colorCalculator.setNewFrame(sub);
 
         DrawingUtils.drawText(mRgba, colorCalculator.getMedianName());
