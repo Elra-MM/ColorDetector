@@ -25,6 +25,9 @@ import org.opencv.core.Rect;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
@@ -49,6 +52,10 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         askCameraPermission();
 
         colorCalculator = new ColorCalculator(getAssets());
+        ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
+        ses.scheduleWithFixedDelay(() -> {
+            colorCalculator.calculateMedian();
+        }, 2, 1, TimeUnit.SECONDS);
     }
 
     private boolean initOpenCV() {
@@ -155,23 +162,15 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     public void onCameraViewStopped() {
     }
 
-    private int frameCounter = 0;
-    private static final int FRAME_INTERVAL = 30; // Call the method every 30 frames
-    String medianColorName = "";
-
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        frameCounter++;
         Mat mRgba = inputFrame.rgba();
-        colorCalculator.setNewFrame(mRgba);
 
         Rect blackRect = DrawingUtils.drawRectangles(mRgba);
+        Mat sub = mRgba.submat(blackRect);
+        colorCalculator.setNewFrame(sub);
 
-        if (frameCounter >= FRAME_INTERVAL) {
-            medianColorName = colorCalculator.getMedianName(blackRect);
-            frameCounter = 0;
-        }
-        DrawingUtils.drawText(mRgba, medianColorName);
+        DrawingUtils.drawText(mRgba, colorCalculator.getMedianName());
         return mRgba;
     }
 }
