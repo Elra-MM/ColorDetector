@@ -1,15 +1,26 @@
 package com.example.colordetector;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.hardware.Camera;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.opencsv.CSVReader;
 
@@ -46,6 +57,7 @@ import static org.opencv.imgproc.Imgproc.cvtColor;
 
 public class MainActivity extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
+    private static final int CAMERA_PERMISSION_REQUEST_CODE = 200;
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
     private Mat mCIELab;
@@ -67,9 +79,16 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         setContentView(R.layout.activity_main);
 
-        mOpenCvCameraView = findViewById(R.id.openCVCamera);
-        mOpenCvCameraView.setVisibility(View.VISIBLE);
-        mOpenCvCameraView.setCvCameraViewListener(this);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
+        } else {
+            if (isCameraAvailable()) {
+                initializeCamera();
+            } else {
+                Toast.makeText(this, "It seems that your device does not support camera (or it is locked). Application will be closed.", Toast.LENGTH_LONG).show();
+                finish();
+            }
+        }
 
         try {
             AssetManager assetManager = getAssets();
@@ -89,7 +108,45 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         }
     }
 
+    private boolean isCameraAvailable() {
+        CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        try {
+            for (String cameraId : cameraManager.getCameraIdList()) {
+                CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+                Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
+                if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
+                    return true;
+                }
+            }
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
+    private void initializeCamera() {
+        mOpenCvCameraView = findViewById(R.id.openCVCamera);
+        mOpenCvCameraView.setVisibility(View.VISIBLE);
+        mOpenCvCameraView.setCvCameraViewListener(this);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (isCameraAvailable()) {
+                    initializeCamera();
+                } else {
+                    Toast.makeText(this, "It seems that your device does not support camera (or it is locked). Application will be closed.", Toast.LENGTH_LONG).show();
+                    finish();
+                }
+            } else {
+                Toast.makeText(this, "Camera permission is required to use this app", Toast.LENGTH_LONG).show();
+                finish();
+            }
+        }
+    }
 
     @Override
     public void onPause() {
