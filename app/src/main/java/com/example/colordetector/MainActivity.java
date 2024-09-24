@@ -1,10 +1,13 @@
 package com.example.colordetector;
 
 import android.annotation.SuppressLint;
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import com.opencsv.CSVReader;
 
 import org.opencv.android.CameraActivity;
 import org.opencv.android.CameraBridgeViewBase;
@@ -15,6 +18,10 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +48,27 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         mOpenCvCameraView = findViewById(R.id.openCVCamera);
         mOpenCvCameraView.setVisibility(View.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+        try {
+            AssetManager assetManager = getAssets();
+            InputStream inputStream = assetManager.open("dataset_colors.csv");
+            CSVReader reader = new CSVReader(new InputStreamReader(inputStream));
+            List<String[]> fileLines = reader.readAll();
+            for (String[] line : fileLines) {
+                for (String cell : line) {
+                    System.out.print(cell + " ");
+                }
+                System.out.println();
+            }
+            Log.i("TAG MM", " File count = " + fileLines.size());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("TAG MM", "The specified file was not found : " + e.getMessage());
+        }
+
     }
+
+
 
     @Override
     public void onPause() {
