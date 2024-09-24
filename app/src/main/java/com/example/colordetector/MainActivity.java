@@ -12,24 +12,28 @@ import com.opencsv.CSVReader;
 import org.opencv.android.CameraActivity;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.opencv.imgproc.Imgproc.COLOR_RGB2Lab;
+import static org.opencv.imgproc.Imgproc.cvtColor;
+
 public class MainActivity extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
+    private Mat mCIELab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +86,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         super.onResume();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.enableView();
+        mCIELab = new Mat();
     }
 
     @Override
@@ -110,24 +115,34 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         Point centerPoint = GetCenterPoint();
 
-
         Rect blackRect = DefineBlackRect(centerPoint);
 
         DrawRectangles(centerPoint, blackRect);
 
-        Scalar medianColor = ComputeMedian(mRgba.submat(blackRect));
-        Log.i("TAG MM", "Median color value: " + medianColor);
+        Rgba2CIELab(mRgba, mCIELab);
 
+        Scalar medianColor = ComputeMedianCIE(mCIELab.submat(blackRect));
         PrintMedian(medianColor);
 
         return mRgba;
     }
 
+    private void Rgba2CIELab(Mat mRgba, Mat mCIELab) {
+        // Convert mRgba to floating-point type
+        Mat mRgbaFloat = new Mat();
+        mRgba.convertTo(mRgbaFloat, CvType.CV_32F);
+
+        // Normalize mRgba to the range [0, 1]
+        Core.normalize(mRgbaFloat, mRgbaFloat, 0, 1, Core.NORM_MINMAX);
+
+        cvtColor(mRgbaFloat, mCIELab, COLOR_RGB2Lab);
+    }
+
+
     private void PrintMedian(Scalar medianColor) {
-        // Convert the Scalar values to a string
-        @SuppressLint("DefaultLocale") String medianColorText = String.format("Median Color: [%.2f, %.2f, %.2f, %.2f]",
+        @SuppressLint("DefaultLocale") String medianColorText = String.format("Median Color: [%.2f, %.2f, %.2f]",
                 medianColor.val[0], medianColor.val[1],
-                medianColor.val[2], medianColor.val[3]);
+                medianColor.val[2]);
 
         Point textPosition = new Point(0, mRgba.rows() / 6);
 
@@ -157,6 +172,33 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         Imgproc.rectangle(mRgba, whiteRect, new Scalar(255, 255, 255), 5);
         Imgproc.rectangle(mRgba, blackRect, new Scalar(0, 0, 0), 5);
+    }
+
+    private Scalar ComputeMedianCIE(Mat roiMat) {
+        List<Double> lValues = new ArrayList<>();
+        List<Double> aValues = new ArrayList<>();
+        List<Double> bValues = new ArrayList<>();
+
+        for (int i = 0; i < roiMat.rows(); i++) {
+            for (int j = 0; j < roiMat.cols(); j++) {
+                double[] pixel = roiMat.get(i, j);
+                if (pixel != null ) {
+                    lValues.add(pixel[0]);
+                    aValues.add(pixel[1]);
+                    bValues.add(pixel[2]);
+                }
+            }
+        }
+
+        Collections.sort(lValues);
+        Collections.sort(aValues);
+        Collections.sort(bValues);
+
+        double medianBlue = lValues.get(lValues.size() / 2);
+        double medianGreen = aValues.get(aValues.size() / 2);
+        double medianRed = bValues.get(bValues.size() / 2);
+
+        return new Scalar(medianBlue, medianGreen, medianRed);
     }
 
     private Scalar ComputeMedian(Mat roiMat) {
