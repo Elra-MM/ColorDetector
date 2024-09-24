@@ -9,8 +9,11 @@ import org.opencv.android.CameraActivity;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -76,26 +79,61 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        mRgba = inputFrame.rgba();
-        FindColor();
+
+        FindColor(inputFrame);
         return mRgba;
     }
 
-    private void FindColor(){
+    private void FindColor(CameraBridgeViewBase.CvCameraViewFrame inputFrame){
+        mRgba = inputFrame.rgba();
         int cols = mRgba.cols();
         int rows = mRgba.rows();
 
-        int roi_size = 10;
-        //get color at the center of the image
-        //TODO : 1 - create ROI representing a little circle at the center of the image
-        // 2 - draw the circle bold black
-        // 3 - calculate the average of the color pixels under this circle
-        double[] colorRGBA = mRgba.get(rows/2 , cols/2);
+        Point center = new Point(rows * 0.5, cols * 0.5);
+        double[] colorRGBA = mRgba.get((int) center.x, (int) center.y);
         Log.i("TAG MM", "Color size = " + colorRGBA[0] + " , G " + colorRGBA[1] + " , R " + colorRGBA[2]);
-//
-//        Mat centerRgba = mRgba.submat()
-//        Mat centerHsv = new Mat();
-//        Imgproc.cvtColor();
+
+        Imgproc.circle(mRgba, center, 50, new Scalar(0, 0, 0), 5); // black circle
+        Imgproc.circle(mRgba, center, 55, new Scalar(255, 255, 255), 2); // white circle
+
+        // Create a mask for the circle
+        Mat mask = Mat.zeros(mRgba.size(), mRgba.type());
+        Imgproc.circle(mask, center, 50, new Scalar(255, 255, 255), -1); // filled white circle
+
+        // Extract the pixels within the circle using the mask
+        Mat circlePixels = new Mat();
+        mRgba.copyTo(circlePixels, mask);
+
+        // Calculate the median of these pixels
+        List<Double> blueValues = new ArrayList<>();
+        List<Double> greenValues = new ArrayList<>();
+        List<Double> redValues = new ArrayList<>();
+        List<Double> alphaValues = new ArrayList<>();
+
+        for (int i = 0; i < circlePixels.rows(); i++) {
+            for (int j = 0; j < circlePixels.cols(); j++) {
+                double[] pixel = circlePixels.get(i, j);
+                if (pixel != null) {
+                    blueValues.add(pixel[0]);
+                    greenValues.add(pixel[1]);
+                    redValues.add(pixel[2]);
+                    alphaValues.add(pixel[3]);
+                }
+            }
+        }
+
+        Collections.sort(blueValues);
+        Collections.sort(greenValues);
+        Collections.sort(redValues);
+        Collections.sort(alphaValues);
+
+        double medianBlue = blueValues.get(blueValues.size() / 2);
+        double medianGreen = greenValues.get(greenValues.size() / 2);
+        double medianRed = redValues.get(redValues.size() / 2);
+        double medianAlpha = alphaValues.get(alphaValues.size() / 2);
+
+        Scalar medianColor = new Scalar(medianBlue, medianGreen, medianRed, medianAlpha);
+        Log.i("TAG MM", "Median color value: " + medianColor);
 
     }
 
