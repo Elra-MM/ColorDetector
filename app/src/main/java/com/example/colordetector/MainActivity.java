@@ -10,6 +10,7 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
@@ -89,51 +90,65 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         int cols = mRgba.cols();
         int rows = mRgba.rows();
 
-        Point center = new Point(rows * 0.5, cols * 0.5);
-        double[] colorRGBA = mRgba.get((int) center.x, (int) center.y);
-        Log.i("TAG MM", "Color size = " + colorRGBA[0] + " , G " + colorRGBA[1] + " , R " + colorRGBA[2]);
+        Point centerPoint = new Point(rows * 0.5, cols * 0.5);
+        double[] colorCenter_RGBA = mRgba.get((int) centerPoint.x, (int) centerPoint.y);
+        Log.i("TAG MM", "Color size = " + colorCenter_RGBA[0] + " , G " + colorCenter_RGBA[1] + " , R " + colorCenter_RGBA[2]);
 
-        Imgproc.circle(mRgba, center, 50, new Scalar(0, 0, 0), 5); // black circle
-        Imgproc.circle(mRgba, center, 55, new Scalar(255, 255, 255), 2); // white circle
 
-        // Create a mask for the circle
-        Mat mask = Mat.zeros(mRgba.size(), mRgba.type());
-        Imgproc.circle(mask, center, 50, new Scalar(255, 255, 255), -1); // filled white circle
+        Rect roi = new Rect((int) centerPoint.x, (int) centerPoint.y, 70, 70);
 
-        // Extract the pixels within the circle using the mask
-        Mat circlePixels = new Mat();
-        mRgba.copyTo(circlePixels, mask);
+        Imgproc.rectangle(mRgba, roi, new Scalar(0, 0, 0), 2); // black rectangle
 
-        // Calculate the median of these pixels
-        List<Double> blueValues = new ArrayList<>();
-        List<Double> greenValues = new ArrayList<>();
-        List<Double> redValues = new ArrayList<>();
-        List<Double> alphaValues = new ArrayList<>();
+        Mat roiMat = mRgba.submat(roi);
+        //roiMat.setTo(new Scalar(255));
 
-        for (int i = 0; i < circlePixels.rows(); i++) {
-            for (int j = 0; j < circlePixels.cols(); j++) {
-                double[] pixel = circlePixels.get(i, j);
-                if (pixel != null) {
-                    blueValues.add(pixel[0]);
-                    greenValues.add(pixel[1]);
-                    redValues.add(pixel[2]);
-                    alphaValues.add(pixel[3]);
-                }
-            }
-        }
+        System.out.println("MM RoiMat:\n" + roiMat.dump());
 
-        Collections.sort(blueValues);
-        Collections.sort(greenValues);
-        Collections.sort(redValues);
-        Collections.sort(alphaValues);
 
-        double medianBlue = blueValues.get(blueValues.size() / 2);
-        double medianGreen = greenValues.get(greenValues.size() / 2);
-        double medianRed = redValues.get(redValues.size() / 2);
-        double medianAlpha = alphaValues.get(alphaValues.size() / 2);
+//        Imgproc.circle(mRgba, centerPoint, 50, new Scalar(0, 0, 0), 5); // black circle
+//        Imgproc.circle(mRgba, centerPoint, 55, new Scalar(255, 255, 255), 2); // white circle
 
-        Scalar medianColor = new Scalar(medianBlue, medianGreen, medianRed, medianAlpha);
-        Log.i("TAG MM", "Median color value: " + medianColor);
+
+
+
+//        // Create a mask for the circle
+//        Mat mask = Mat.zeros(mRgba.size(), mRgba.type());
+//        Imgproc.circle(mask, centerPoint, 50, new Scalar(255, 255, 255), -1); // filled white circle
+//
+//        // Extract the pixels within the circle using the mask
+//        Mat circlePixels = new Mat();
+//        mRgba.copyTo(circlePixels, mask);
+
+//        // Calculate the median of these pixels
+//        List<Double> blueValues = new ArrayList<>();
+//        List<Double> greenValues = new ArrayList<>();
+//        List<Double> redValues = new ArrayList<>();
+//        List<Double> alphaValues = new ArrayList<>();
+//
+//        for (int i = 0; i < circlePixels.rows(); i++) {
+//            for (int j = 0; j < circlePixels.cols(); j++) {
+//                double[] pixel = circlePixels.get(i, j);
+//                if (pixel != null) {
+//                    blueValues.add(pixel[0]);
+//                    greenValues.add(pixel[1]);
+//                    redValues.add(pixel[2]);
+//                    alphaValues.add(pixel[3]);
+//                }
+//            }
+//        }
+//
+//        Collections.sort(blueValues);
+//        Collections.sort(greenValues);
+//        Collections.sort(redValues);
+//        Collections.sort(alphaValues);
+//
+//        double medianBlue = blueValues.get(blueValues.size() / 2);
+//        double medianGreen = greenValues.get(greenValues.size() / 2);
+//        double medianRed = redValues.get(redValues.size() / 2);
+//        double medianAlpha = alphaValues.get(alphaValues.size() / 2);
+//
+//        Scalar medianColor = new Scalar(medianBlue, medianGreen, medianRed, medianAlpha);
+//        Log.i("TAG MM", "Median color value: " + medianColor);
 
     }
 
