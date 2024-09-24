@@ -24,6 +24,7 @@ public class DrawingUtils {
     private final int RECTANGLE_THICKNESS = 25;
     private static final int RECT_WIDTH = 250; // Fixed width in pixels
     private static final int RECT_HEIGHT = 250; // Fixed height in pixels
+    private String color_name = "";
 
     protected DrawingUtils() {
         // Set up the paint with desired attributes
@@ -36,7 +37,10 @@ public class DrawingUtils {
         backgroundPaint.setStyle(Paint.Style.FILL);
     }
 
-    public void drawText(Mat mRgba, String name) {
+    public void setNewColorName(String name) {
+        color_name = name;
+    }
+    public void drawText(Mat mRgba) {
         // Create a bitmap from the Mat object
         Bitmap bitmap = Bitmap.createBitmap(mRgba.cols(), mRgba.rows(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(mRgba, bitmap);
@@ -46,7 +50,7 @@ public class DrawingUtils {
 
         // Calculate the size of the text
         android.graphics.Rect textBounds = new android.graphics.Rect();
-        paint.getTextBounds(name, 0, name.length(), textBounds);
+        paint.getTextBounds(color_name, 0, color_name.length(), textBounds);
 
         // Calculate the position for the text and background
         float x = (bitmap.getWidth() - textBounds.width()) / 2;
@@ -62,7 +66,7 @@ public class DrawingUtils {
         canvas.drawRect(rectLeft, rectTop, rectRight, rectBottom, backgroundPaint);
 
         // Draw the text on the canvas
-        canvas.drawText(name, x, y, paint);
+        canvas.drawText(color_name, x, y, paint);
 
         // Convert the bitmap back to a Mat object
         Utils.bitmapToMat(bitmap, mRgba);
