@@ -1,4 +1,4 @@
-package com.example.colordetector;
+package com.detector.colordetector;
 
 import android.Manifest;
 import android.content.Context;
@@ -17,6 +17,8 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.colordetector.R;
+
 import org.opencv.android.CameraActivity;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
@@ -29,9 +31,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-//Ligne `69`, `81` les `Toast` c'est a chier. C'est petit, et temporaire, on peut les rater. Plutôt
-// faire un gros texte "CAMARCHEPA" a la ligne `45` ? Sur les écrans comme le miens je vois que les
-// deux premiers mots parce qu'il y a pas la place. Bref t'as une fonction `drawText` ce serait pas mieux ? 😃
 public class MainActivity extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 200;

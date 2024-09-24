@@ -1,4 +1,4 @@
-package com.example.colordetector;
+package com.detector.colordetector;
 
 import android.content.Context;
 

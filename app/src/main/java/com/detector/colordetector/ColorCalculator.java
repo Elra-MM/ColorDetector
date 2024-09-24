@@ -1,10 +1,8 @@
-package com.example.colordetector;
+package com.detector.colordetector;
 
 import android.content.res.AssetManager;
-import android.nfc.Tag;
 import android.util.Log;
 
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
@@ -21,9 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 
-import static org.opencv.imgproc.Imgproc.COLOR_RGB2HSV_FULL;
 import static org.opencv.imgproc.Imgproc.COLOR_RGB2Lab;
-import static org.opencv.imgproc.Imgproc.COLOR_RGB2XYZ;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
 /// This class calculate the median color of the Mat each frame and then calculate the average of
