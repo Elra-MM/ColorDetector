@@ -7,6 +7,8 @@ import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -25,6 +27,7 @@ import org.opencv.core.Rect;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +40,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private DrawingUtils drawingUtils;
     private Window window;
     private ScheduledExecutorService scheduledExecutorService;
+    private ExecutorService executorService;
+    private Handler mainHandler;
 
     private final String TAG = "MainActivity";
 
@@ -62,14 +67,17 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         colorCalculator = new ColorCalculator(getAssets());
         drawingUtils = new DrawingUtils();
 
-        scheduledExecutorService = Executors.newScheduledThreadPool(1);
-        scheduledExecutorService.scheduleWithFixedDelay(() -> {
-            try{
-                colorCalculator.computeNewName();
-            }catch (Exception e){
-                Log.e(TAG, "Error in the scheduled task", e);
-            }
-        }, 2, 1, TimeUnit.SECONDS);
+//        scheduledExecutorService = Executors.newScheduledThreadPool(1);
+//        scheduledExecutorService.scheduleWithFixedDelay(() -> {
+//            try{
+//                colorCalculator.computeNewName();
+//            }catch (Exception e){
+//                Log.e(TAG, "Error in the scheduled task", e);
+//            }
+//        }, 2, 1, TimeUnit.SECONDS);
+
+        executorService = Executors.newSingleThreadExecutor();
+        mainHandler = new Handler(Looper.getMainLooper());
     }
 
     private boolean initOpenCV() {
@@ -168,6 +176,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             mOpenCvCameraView.disableView();
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         scheduledExecutorService.shutdown();
+        executorService.shutdown();
     }
 
     @Override
@@ -185,9 +194,9 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         Rect blackRect = drawingUtils.drawRectangles(mRgba);
         Mat sub = mRgba.submat(blackRect);
 
-        colorCalculator.setNewFrame(sub);
-
-        drawingUtils.drawText(mRgba, colorCalculator.getMedianName());
+        executorService.submit(new CalculateTask(colorCalculator));
+        executorService.submit(new NewFrameTask(colorCalculator, drawingUtils, sub, mainHandler));
+        drawingUtils.drawText(mRgba);
         return mRgba;
     }
 }

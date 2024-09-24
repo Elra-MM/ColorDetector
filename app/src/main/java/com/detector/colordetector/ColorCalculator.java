@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Executors;
 
 import static org.opencv.imgproc.Imgproc.COLOR_RGB2Lab;
 import static org.opencv.imgproc.Imgproc.cvtColor;
@@ -46,21 +45,16 @@ public class ColorCalculator {
         return medianName;
     }
 
-    protected void setNewFrame(Mat newRgba) {
+    protected void addNewMat(Mat newRgba) {
         if (newRgba == null || newRgba.empty()) {
             Log.e(TAG, "New frame is null or empty.");
             return;
         }
-        Executors.newWorkStealingPool().submit((() -> {
-            mediansColor.add(computeMedian(newRgba));
-        }));
-
+        mediansColor.add(computeMedian(newRgba));
     }
 
     protected void computeNewName() {
-        Executors.newWorkStealingPool().submit((() -> {
-            medianName = getNameCIE(computeAverage(mediansColor));
-        }));
+        medianName = getNameCIE(computeAverage(mediansColor));
         mediansColor.clear();
     }
 
