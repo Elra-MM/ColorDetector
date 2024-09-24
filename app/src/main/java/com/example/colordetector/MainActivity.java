@@ -3,7 +3,6 @@ package com.example.colordetector;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -24,26 +23,15 @@ import org.opencv.android.CameraActivity;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
-import static org.opencv.imgproc.Imgproc.COLOR_RGB2Lab;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
 public class MainActivity extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
@@ -51,11 +39,9 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 200;
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
-    private Mat mCIELab;
+    private ColorCalculator colorCalculator;
 
-
-    HashMap<String, List<Double>> colorSetCIE = new HashMap<>();
-    private String TAG;
+    private final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +53,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         askCameraPermission();
 
-        createColorSet();
+        colorCalculator = new ColorCalculator(getAssets());
     }
 
     private boolean initOpenCV() {
@@ -112,25 +98,6 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         return false;
     }
 
-    private void createColorSet() {
-        try {
-            AssetManager assetManager = getAssets();
-            InputStream inputStream = assetManager.open("colorset.csv");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            reader.readLine(); // skip the first line
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                String[] elt = line.split(";");
-                colorSetCIE.put(elt[8], new ArrayList<>(Arrays.asList(Double.parseDouble(elt[4]), Double.parseDouble(elt[5]), Double.parseDouble(elt[6]))));
-            }
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(TAG, "The specified file was not found: " + e.getMessage());
-        }
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -167,7 +134,6 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         super.onResume();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.enableView();
-        mCIELab = new Mat();
     }
 
     @Override
@@ -180,7 +146,6 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         super.onDestroy();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
-        mCIELab.release();
     }
 
     @Override
@@ -194,55 +159,24 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private int frameCounter = 0;
     private static final int FRAME_INTERVAL = 30; // Call the method every 30 frames
     String medianColorName = "";
+
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         frameCounter++;
         mRgba = inputFrame.rgba();
+        colorCalculator.setNewFrame(mRgba);
 
         Rect blackRect = drawRectangles();
+
         if (frameCounter >= FRAME_INTERVAL) {
-            processFrame(blackRect);
+            medianColorName = colorCalculator.getMedianName(blackRect);
             frameCounter = 0;
         }
-        print(medianColorName);
+        drawText(medianColorName);
         return mRgba;
     }
 
-    private void processFrame(Rect blackRect) {
-        rgba2CIELab(mRgba, mCIELab);
-        Mat sub = mCIELab.submat(blackRect);
-        Scalar medianColor = computeMedianCIE(sub);
-        //Scalar averageColor = ComputeAverageCIE(sub);
-        medianColorName = getNameCIE(medianColor);
-    }
-
-    private String getNameCIE(Scalar medianColor) {
-        int min = Integer.MAX_VALUE;
-        String name = "";
-        for (String key : colorSetCIE.keySet()) {
-            List<Double> color = colorSetCIE.get(key);
-            int distance = (int) Math.sqrt(Math.pow(color.get(0) - medianColor.val[0], 2) + Math.pow(color.get(1) - medianColor.val[1], 2) + Math.pow(color.get(2) - medianColor.val[2], 2));
-            if (distance < min) {
-                min = distance;
-                name = key;
-            }
-        }
-        return name;
-    }
-
-    private void rgba2CIELab(Mat mRgba, Mat mCIELab) {
-        // Convert mRgba to floating-point type
-        Mat mRgbaFloat = new Mat();
-        mRgba.convertTo(mRgbaFloat, CvType.CV_32F);
-
-        // Normalize mRgba to the range [0, 1]
-        Core.normalize(mRgbaFloat, mRgbaFloat, 0, 1, Core.NORM_MINMAX);
-
-        cvtColor(mRgbaFloat, mCIELab, COLOR_RGB2Lab);
-    }
-
-
-    private void print(String name) {
+    private void drawText(String name) {
         // Create a bitmap from the Mat object
         Bitmap bitmap = Bitmap.createBitmap(mRgba.cols(), mRgba.rows(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(mRgba, bitmap);
@@ -311,35 +245,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         return blackRect;
     }
 
-    private Scalar computeMedianCIE(Mat roiMat) {
-        List<Double> lValues = new ArrayList<>();
-        List<Double> aValues = new ArrayList<>();
-        List<Double> bValues = new ArrayList<>();
 
-        for (int i = 0; i < roiMat.rows(); i++) {
-            for (int j = 0; j < roiMat.cols(); j++) {
-                double[] pixel = roiMat.get(i, j);
-                if (pixel != null && isBlackOrWhitePixel(pixel)) {
-                    lValues.add(pixel[0]);
-                    aValues.add(pixel[1]);
-                    bValues.add(pixel[2]);
-                }
-            }
-        }
 
-        Collections.sort(lValues);
-        Collections.sort(aValues);
-        Collections.sort(bValues);
 
-        double medianBlue = lValues.get(lValues.size() / 2);
-        double medianGreen = aValues.get(aValues.size() / 2);
-        double medianRed = bValues.get(bValues.size() / 2);
-
-        return new Scalar(medianBlue, medianGreen, medianRed);
-    }
-
-    private boolean isBlackOrWhitePixel(double[] pixel) {
-        return (pixel[0] != 250 || pixel[1] != 250 || pixel[2] != 250)
-                && (pixel[0] != 0 || pixel[1] != 0 || pixel[2] != 0);
-    }
 }
