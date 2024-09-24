@@ -29,11 +29,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+//Ligne `69`, `81` les `Toast` c'est a chier. C'est petit, et temporaire, on peut les rater. Plutôt
+// faire un gros texte "CAMARCHEPA" a la ligne `45` ? Sur les écrans comme le miens je vois que les
+// deux premiers mots parce qu'il y a pas la place. Bref t'as une fonction `drawText` ce serait pas mieux ? 😃
 public class MainActivity extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 200;
     private CameraBridgeViewBase mOpenCvCameraView;
     private ColorCalculator colorCalculator;
+    private DrawingUtils drawingUtils;
     Window window;
 
     private final String TAG = "MainActivity";
@@ -42,16 +46,24 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (!initOpenCV()) return;
+        if (!initOpenCV())
+            //TODO : Add popup to inform the user that the app will close with error message and
+            // close the app
+            return;
 
         setContentView(R.layout.activity_main);
         window = getWindow();
+
         // Keep the screen on
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        //TODO : Add a popup to inform the user that the app will close with error message and close
+        // the app and add a retrun value of askCameraPermission
         askCameraPermission();
 
         colorCalculator = new ColorCalculator(getAssets());
+        drawingUtils = new DrawingUtils();
+
         ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
         ses.scheduleWithFixedDelay(() -> {
             colorCalculator.computeNewName();
@@ -61,11 +73,11 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private boolean initOpenCV() {
         if (OpenCVLoader.initLocal())
         {
-            Log.i("Main", "OpenCV init success");
+            Log.i(TAG, "OpenCV init success");
             return true;
         }
         else {
-            Log.e("Main", "OpenCV init failed");
+            Log.e(TAG, "OpenCV init failed");
             (Toast.makeText(this, "OpenCV initialization failed!", Toast.LENGTH_LONG)).show();
             return false;
         }
@@ -108,6 +120,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                 if (isCameraAvailable()) {
                     initializeCamera();
                 } else {
+                    //TODO : Add a popup to inform the user that the app will close with error message and close the app
                     Toast.makeText(this, "It seems that your device does not support camera (or it is locked). Application will be closed.", Toast.LENGTH_LONG).show();
                     finish();
                 }
@@ -166,12 +179,12 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat mRgba = inputFrame.rgba();
 
-        Rect blackRect = DrawingUtils.drawRectangles(mRgba);
+        Rect blackRect = drawingUtils.drawRectangles(mRgba);
         Mat sub = mRgba.submat(blackRect);
 
         colorCalculator.setNewFrame(sub);
 
-        DrawingUtils.drawText(mRgba, colorCalculator.getMedianName());
+        drawingUtils.drawText(mRgba, colorCalculator.getMedianName());
         return mRgba;
     }
 }

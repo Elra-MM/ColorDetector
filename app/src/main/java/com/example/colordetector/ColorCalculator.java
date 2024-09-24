@@ -3,11 +3,8 @@ package com.example.colordetector;
 import android.content.res.AssetManager;
 import android.util.Log;
 
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,17 +21,16 @@ import static org.opencv.imgproc.Imgproc.COLOR_RGB2Lab;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
 /// This class calculate the median color of the Mat each frame and then calculate the average of
-// all the medians to get the final color's name
-// To do that, it convert the color from RGB to CIELab and then find the closest color in the
+/// all the medians to get the final color's name
+/// To do that, it convert the color from RGB to CIELab and then find the closest color in the
 // colorset.csv file and take its name
 
 public class ColorCalculator {
-
     private List<Scalar> mediansColor;
     private final String TAG = "ColorCalculator";
 
     private final Mat mCIELab;
-    HashMap<String, List<Double>> colorSetCIE = new HashMap<>();
+    private HashMap<String, List<Double>> colorSetCIE = new HashMap<>();
     private String medianName = "";
 
 
@@ -53,36 +49,33 @@ public class ColorCalculator {
             Log.e(TAG, "New frame is null or empty.");
             return;
         }
-        mediansColor.add(calculateMedian(newRgba));
+        mediansColor.add(computeMedian(newRgba));
     }
 
     protected void computeNewName() {
-        medianName = getNameCIE(calculateAverage(mediansColor));
+        medianName = getNameCIE(computeAverage(mediansColor));
         mediansColor.clear();
     }
 
-    protected Scalar calculateAverage(List<Scalar> scalars) {
+    protected Scalar computeAverage(List<Scalar> scalars) {
         if (scalars == null || scalars.isEmpty()) {
             throw new IllegalArgumentException("The list of scalars is null or empty.");
         }
 
-        double sumL = 0, sumA = 0, sumB = 0;
-        for (Scalar scalar : scalars) {
-            sumL += scalar.val[0];
-            sumA += scalar.val[1];
-            sumB += scalar.val[2];
-        }
+        double L = scalars.stream().mapToDouble(scalar -> scalar.val[0]).average().orElse(0);
+        double A = scalars.stream().mapToDouble(scalar -> scalar.val[1]).average().orElse(0);
+        double B = scalars.stream().mapToDouble(scalar -> scalar.val[2]).average().orElse(0);
 
-        int count = scalars.size();
-        return new Scalar(sumL / count, sumA / count, sumB / count);
+        return new Scalar(L,A,B);
     }
 
-    private Scalar calculateMedian(Mat newRgba) {
+    private Scalar computeMedian(Mat newRgba) {
         rgba2CIELab(newRgba, mCIELab);
         return computeMedianCIE(mCIELab);
     }
 
-    private void createColorSet(AssetManager assets) {
+    private HashMap<String, List<Double>> createColorSet(AssetManager assets) {
+        HashMap<String, List<Double>> set = new HashMap<>();
         try {
             InputStream inputStream = assets.open("colorset.csv");
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
@@ -91,13 +84,14 @@ public class ColorCalculator {
 
             while ((line = reader.readLine()) != null) {
                 String[] elt = line.split(";");
-                colorSetCIE.put(elt[8], new ArrayList<>(Arrays.asList(Double.parseDouble(elt[4]), Double.parseDouble(elt[5]), Double.parseDouble(elt[6]))));
+                set.put(elt[8], new ArrayList<>(Arrays.asList(Double.parseDouble(elt[4]), Double.parseDouble(elt[5]), Double.parseDouble(elt[6]))));
             }
             reader.close();
         } catch (IOException e) {
             e.printStackTrace();
             Log.e(TAG, "The specified file was not found: " + e.getMessage());
         }
+        return set;
     }
 
     private void rgba2CIELab(Mat mRgba, Mat mCIELab) {
@@ -136,16 +130,24 @@ public class ColorCalculator {
     }
 
     private boolean isNotBlackOrWhitePixel(double[] pixel) {
-        return (pixel[0] != 250 || pixel[1] != 250 || pixel[2] != 250)
+        return (pixel[0] != 255 || pixel[1] != 255 || pixel[2] != 255)
                 && (pixel[0] != 0 || pixel[1] != 0 || pixel[2] != 0);
     }
 
     private String getNameCIE(Scalar medianColor) {
+        // Pareil ici, pour éviter le `int min = Integer.MAX_VALUE;` j'aurais fait stream() et min() ou équivalent
         int min = Integer.MAX_VALUE;
         String name = "";
+
+
+        //TODO : can use stream() and colorSetCIE.entrySet()
         for (String key : colorSetCIE.keySet()) {
             List<Double> color = colorSetCIE.get(key);
-            int distance = (int) Math.sqrt(Math.pow(color.get(0) - medianColor.val[0], 2) + Math.pow(color.get(1) - medianColor.val[1], 2) + Math.pow(color.get(2) - medianColor.val[2], 2));
+
+            //TODO : Calculate the CIEDE2000 distance between the two colors
+
+            //distance for RGB
+            int distance = (int) (Math.pow(color.get(0) - medianColor.val[0], 2) + Math.pow(color.get(1) - medianColor.val[1], 2) + Math.pow(color.get(2) - medianColor.val[2], 2));
             if (distance < min) {
                 min = distance;
                 name = key;
@@ -153,13 +155,4 @@ public class ColorCalculator {
         }
         return name;
     }
-//    private Mat FinishCalculateAverageMat() {
-//        if (sumMat.empty()) {
-//            Log.e(TAG, "Sum matrix is empty, cannot calculate average.");
-//            return new Mat();
-//        }
-//        Mat averageMat = new Mat();
-//        Core.divide(sumMat, Scalar.all(nbFrames), averageMat);
-//        return averageMat;
-//    }
 }
