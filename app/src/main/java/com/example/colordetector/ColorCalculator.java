@@ -76,7 +76,7 @@ public class ColorCalculator {
         double A = scalars.stream().mapToDouble(scalar -> scalar.val[1]).average().orElse(0);
         double B = scalars.stream().mapToDouble(scalar -> scalar.val[2]).average().orElse(0);
 
-        return new Scalar(L,A,B);
+        return new Scalar(L, A, B);
     }
 
     private Scalar computeMedian(Mat newRgba) {
@@ -134,11 +134,15 @@ public class ColorCalculator {
         Collections.sort(aValues);
         Collections.sort(bValues);
 
-        double medianBlue = lValues.get(lValues.size() / 2);
-        double medianGreen = aValues.get(aValues.size() / 2);
-        double medianRed = bValues.get(bValues.size() / 2);
+        if (lValues.isEmpty() || aValues.isEmpty() || bValues.isEmpty()) {
+            Log.w(TAG, "Empty frame, all pixels were black|white|null !");
+            return new Scalar(0, 0, 0);
+        }
+        double medianL = lValues.get(lValues.size() / 2);
+        double medianA = aValues.get(aValues.size() / 2);
+        double medianB = bValues.get(bValues.size() / 2);
 
-        return new Scalar(medianBlue, medianGreen, medianRed);
+        return new Scalar(medianL, medianA, medianB);
     }
 
     private boolean isNotBlackOrWhitePixel(double[] pixel) {
@@ -277,9 +281,11 @@ public class ColorCalculator {
                         Math.pow(deltaHPrime / (k_H * S_H), 2.0) +
                         (R_T * (deltaCPrime / (k_C * S_C)) * (deltaHPrime / (k_H * S_H))));
     }
+
     private double toRadians(double degrees) {
         return degrees * Math.PI / 180;
     }
+
     public static double toDegrees(double radians) {
         return radians * 180 / Math.PI;
     }
