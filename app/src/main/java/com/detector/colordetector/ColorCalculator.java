@@ -29,6 +29,7 @@ import static org.opencv.imgproc.Imgproc.cvtColor;
 public class ColorCalculator {
     private List<Scalar> mediansColor;
     private final String TAG = "ColorCalculator";
+    private final String SETNAME = "colorset.csv";
 
     private final Mat mCIELab;
     private HashMap<String, List<Double>> colorSetCIE = new HashMap<>();
@@ -79,7 +80,7 @@ public class ColorCalculator {
     private HashMap<String, List<Double>> createColorSet(AssetManager assets) {
         HashMap<String, List<Double>> set = new HashMap<>();
         try {
-            InputStream inputStream = assets.open("colorsetCut.csv");
+            InputStream inputStream = assets.open(SETNAME);
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             reader.readLine(); // skip the first line
             String line;
@@ -112,7 +113,7 @@ public class ColorCalculator {
         for (int i = 0; i < roiMat.rows(); i++) {
             for (int j = 0; j < roiMat.cols(); j++) {
                 double[] pixel = roiMat.get(i, j);
-                if (pixel != null && isNotBlackOrWhitePixel(pixel)) {
+                if (pixel != null) {
                     lValues.add(pixel[0]);
                     aValues.add(pixel[1]);
                     bValues.add(pixel[2]);
@@ -134,11 +135,6 @@ public class ColorCalculator {
         double medianB = bValues.get(bValues.size() / 2);
 
         return new Scalar(medianL, medianA, medianB);
-    }
-
-    private boolean isNotBlackOrWhitePixel(double[] pixel) {
-        return (pixel[0] != 255 || pixel[1] != 255 || pixel[2] != 255)
-                && (pixel[0] != 0 || pixel[1] != 0 || pixel[2] != 0);
     }
 
     private String getNameCIE(Scalar medianColor) {
