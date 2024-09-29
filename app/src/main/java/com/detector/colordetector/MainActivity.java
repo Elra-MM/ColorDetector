@@ -133,6 +133,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     private void initializeCamera() {
         mOpenCvCameraView = findViewById(R.id.openCVCamera);
+        mOpenCvCameraView.disableFpsMeter();
         mOpenCvCameraView.setVisibility(View.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
     }
