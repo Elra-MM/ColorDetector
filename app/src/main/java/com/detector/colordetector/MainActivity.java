@@ -66,17 +66,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         colorCalculator = new ColorCalculator(getAssets());
         drawingUtils = new DrawingUtils();
-
-//        scheduledExecutorService = Executors.newScheduledThreadPool(1);
-//        scheduledExecutorService.scheduleWithFixedDelay(() -> {
-//            try{
-//                colorCalculator.computeNewName();
-//            }catch (Exception e){
-//                Log.e(TAG, "Error in the scheduled task", e);
-//            }
-//        }, 2, 1, TimeUnit.SECONDS);
-
-        executorService = Executors.newSingleThreadExecutor();
+        executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
