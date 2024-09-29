@@ -29,8 +29,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
@@ -39,7 +37,6 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private ColorCalculator colorCalculator;
     private DrawingUtils drawingUtils;
     private Window window;
-    private ScheduledExecutorService scheduledExecutorService;
     private ExecutorService executorService;
     private Handler mainHandler;
 
@@ -166,7 +163,6 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        scheduledExecutorService.shutdown();
         executorService.shutdown();
     }
 
@@ -182,7 +178,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat mRgba = inputFrame.rgba();
 
-        Rect blackRect = drawingUtils.drawRectangles(mRgba);
+        Rect blackRect = drawingUtils.drawSquares(mRgba);
         Mat sub = mRgba.submat(blackRect);
 
         executorService.submit(new CalculateTask(colorCalculator));

@@ -72,24 +72,27 @@ public class DrawingUtils {
         Utils.bitmapToMat(bitmap, mRgba);
     }
 
-    public Rect drawRectangles(Mat frame) {
-        int width = frame.width();
-        int height = frame.height();
+    public Rect drawSquares(Mat mRgba) {
+        int frameWidth = mRgba.cols();
+        int frameHeight = mRgba.rows();
 
-        int whiteRectWidth = RECT_WIDTH + 50;
-        int whiteRectHeight = RECT_HEIGHT + 50;
+        // Calculate the size of the square based on the smaller dimension of the frame
+        int squareSize = Math.min(frameWidth, frameHeight) / 4;
 
-        Point centerPoint = new Point(width * 0.5, height * 0.5);
-        Rect blackRect = getRect(centerPoint, RECT_WIDTH, RECT_HEIGHT);
-        Rect whiteRect = getRect(centerPoint, whiteRectWidth, whiteRectHeight);
+        // Calculate the size of the white rectangle (slightly larger than the black square)
+        int whiteRectSize = squareSize + 50;
+
+        Point centerPoint = new Point(frameWidth * 0.5, frameHeight * 0.5);
+        Rect blackSquare = getSquare(centerPoint, squareSize, squareSize);
+        Rect whiteSquare = getSquare(centerPoint, whiteRectSize, whiteRectSize);
 
         // Draw the rectangles on the frame
-        Imgproc.rectangle(frame, whiteRect, new Scalar(255, 255, 255), RECTANGLE_THICKNESS);
-        Imgproc.rectangle(frame, blackRect, new Scalar(0, 0, 0), RECTANGLE_THICKNESS);
-        return blackRect;
+        Imgproc.rectangle(mRgba, whiteSquare, new Scalar(255, 255, 255), RECTANGLE_THICKNESS);
+        Imgproc.rectangle(mRgba, blackSquare, new Scalar(0, 0, 0), RECTANGLE_THICKNESS);
+        return blackSquare;
     }
 
-    private static @NonNull Rect getRect(Point centerPoint, int width, int height) {
+    private static @NonNull Rect getSquare(Point centerPoint, int width, int height) {
         Point borderTopLeft = new Point(centerPoint.x - width * 0.5, centerPoint.y - height * 0.5);
         return new Rect(borderTopLeft, new Size(width, height));
     }
