@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import static org.opencv.imgproc.Imgproc.COLOR_RGB2Lab;
 import static org.opencv.imgproc.Imgproc.cvtColor;
@@ -29,12 +30,14 @@ import static org.opencv.imgproc.Imgproc.cvtColor;
 public class ColorCalculator {
     private List<Scalar> mediansColor;
     private final String TAG = "ColorCalculator";
+
     private final String SETNAME = "colorset.csv";
+    public static final int ENGLISH = 7;
+    public static final int FRENCH = 8;
 
     private final Mat mCIELab;
     private HashMap<String, List<Double>> colorSetCIE = new HashMap<>();
     private String medianName = "";
-
 
     protected ColorCalculator(AssetManager assets) {
         mCIELab = new Mat();
@@ -81,13 +84,14 @@ public class ColorCalculator {
         HashMap<String, List<Double>> set = new HashMap<>();
         try {
             InputStream inputStream = assets.open(SETNAME);
+            int lang = Locale.getDefault().getLanguage().equals("fr") ? FRENCH : ENGLISH;
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             reader.readLine(); // skip the first line
             String line;
 
             while ((line = reader.readLine()) != null) {
                 String[] elt = line.split(";");
-                set.put(elt[8], new ArrayList<>(Arrays.asList(Double.parseDouble(elt[4]), Double.parseDouble(elt[5]), Double.parseDouble(elt[6]))));
+                set.put(elt[lang], new ArrayList<>(Arrays.asList(Double.parseDouble(elt[4]), Double.parseDouble(elt[5]), Double.parseDouble(elt[6]))));
             }
             reader.close();
         } catch (IOException e) {
