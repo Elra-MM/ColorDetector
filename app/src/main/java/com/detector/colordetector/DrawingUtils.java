@@ -22,8 +22,6 @@ public class DrawingUtils {
     private Paint backgroundPaint = new Paint();
     private final int PADDING = 20;
     private final int RECTANGLE_THICKNESS = 25;
-    private static final int RECT_WIDTH = 250; // Fixed width in pixels
-    private static final int RECT_HEIGHT = 250; // Fixed height in pixels
     private String color_name = "";
 
     protected DrawingUtils() {
@@ -77,7 +75,7 @@ public class DrawingUtils {
         int frameHeight = mRgba.rows();
 
         // Calculate the size of the square based on the smaller dimension of the frame
-        int squareSize = Math.min(frameWidth, frameHeight) / 4;
+        int squareSize = Math.min(frameWidth, frameHeight) / 7;
 
         // Calculate the size of the white rectangle (slightly larger than the black square)
         int whiteRectSize = squareSize + 50;
