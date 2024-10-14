@@ -15,9 +15,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.opencv.imgproc.Imgproc.COLOR_RGB2Lab;
 import static org.opencv.imgproc.Imgproc.cvtColor;
@@ -150,19 +154,39 @@ public class ColorCalculator {
     }
 
     private String getNameCIE(Scalar medianColor) {
-        double min = Integer.MAX_VALUE;
         String name = "";
 
-        for (String key : colorSetCIE.keySet()) {
-            List<Double> color = colorSetCIE.get(key);
-            double distance = getDistanceCIE2000(medianColor, new Scalar(color.get(0), color.get(1), color.get(2)));
-            if (distance < min) {
-                min = distance;
-                name = key;
-            }
+        //Compute the distance between the median color and all the colors in the colorset in parallel
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        List<Future<DistanceResult>> distances = new ArrayList<>();
+        for (String colorName : colorSetCIE.keySet()) {
+            List<Double> color = colorSetCIE.get(colorName);
+            distances.add(executor.submit(
+                    () -> new DistanceResult(colorName, getDistanceCIE2000(medianColor, new Scalar(color.get(0), color.get(1), color.get(2))))
+            ));
         }
+
+        //Get the min distances and return the color name associated
+        try {
+            DistanceResult result = distances.stream()
+                    .map(future -> {
+                        try {
+                            return future.get();
+                        } catch (Exception e) {
+                            throw new IllegalStateException(e);
+                        }
+                    })
+                    .min(Comparator.comparingDouble(o -> o.distance)).orElseThrow();
+            name = result.colorName;
+        } catch (Exception e) {
+            Log.e(TAG, "Error while calculating the distance", e);
+        }
+
+        executor.shutdown();
         return name;
     }
+
+    private record DistanceResult(String colorName, double distance) {}
 
     private final double k_L = 1.0, k_C = 1.0, k_H = 1.0;
     private final double deg360InRad = toRadians(360.0);
