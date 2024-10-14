@@ -83,10 +83,13 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private void askCameraPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
+            Log.d(TAG, "Permission prompt");
         } else {
             if (isCameraAvailable()) {
                 initializeCamera();
+                Log.d(TAG, "Permissions granted");
             } else {
+                Log.d(TAG, "It seems that your device does not support camera (or it is locked). Application will be closed.");
                 Toast.makeText(this, "It seems that your device does not support camera (or it is locked). Application will be closed.", Toast.LENGTH_LONG).show();
                 finish();
             }
@@ -100,11 +103,15 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                 CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
                 Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
+                    Log.d(TAG, "Camera ID: " + cameraId + " is available and facing back");
                     return true;
                 }
             }
         } catch (CameraAccessException e) {
+            Log.e(TAG, "CameraAccessException: " + e.getMessage());
             e.printStackTrace();
+        } catch (Exception e) {
+            Log.e(TAG, "Exception: " + e.getMessage());
         }
         return false;
     }
@@ -116,8 +123,10 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 if (isCameraAvailable()) {
                     initializeCamera();
+                    Log.d(TAG, "Permissions granted");
                 } else {
                     //TODO : Add a popup to inform the user that the app will close with error message and close the app
+                    Log.d(TAG, "It seems that your device does not support camera (or it is locked). Application will be closed.");
                     Toast.makeText(this, "It seems that your device does not support camera (or it is locked). Application will be closed.", Toast.LENGTH_LONG).show();
                     finish();
                 }
@@ -131,6 +140,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private void initializeCamera() {
         mOpenCvCameraView = findViewById(R.id.openCVCamera);
         mOpenCvCameraView.disableFpsMeter();
+        mOpenCvCameraView.setCameraPermissionGranted();
         mOpenCvCameraView.setVisibility(View.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
     }
@@ -150,6 +160,9 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.enableView();
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //TODO : Add a popup to inform the user that the app will close with error message and close
+        // the app and add a retrun value of askCameraPermission
+        askCameraPermission();
     }
 
     @Override
