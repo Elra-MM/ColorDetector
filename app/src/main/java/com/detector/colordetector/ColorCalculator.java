@@ -38,6 +38,7 @@ public class ColorCalculator {
     private final Mat mCIELab;
     private HashMap<String, List<Double>> colorSetCIE = new HashMap<>();
     private String medianName = "";
+    private boolean isRunning;
 
     protected ColorCalculator(AssetManager assets) {
         mCIELab = new Mat();
@@ -54,10 +55,17 @@ public class ColorCalculator {
             Log.e(TAG, "New frame is null or empty.");
             return;
         }
+        isRunning = true;
         mediansColor.add(computeMedian(newRgba));
     }
 
     protected void computeNewName() {
+        if (!isRunning)
+        {
+            medianName = "";
+            return;
+        }
+
         medianName = getNameCIE(computeAverage(mediansColor));
         mediansColor.clear();
     }
