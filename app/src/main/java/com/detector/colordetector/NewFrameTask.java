@@ -19,7 +19,7 @@ public class NewFrameTask implements Runnable {
 
     @Override
     public void run() {
-        colorCalculator.addNewMat(sub);
+        colorCalculator.computeNewMedian(sub);
         handler.post(() -> drawingUtils.setNewColorName(colorCalculator.getMedianName()));
     }
 }
