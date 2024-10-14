@@ -29,6 +29,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
@@ -41,6 +43,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private Handler mainHandler;
 
     private final String TAG = "MainActivity";
+    private ScheduledExecutorService scheduledExecutorService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,11 +63,20 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         //TODO : Add a popup to inform the user that the app will close with error message and close
         // the app and add a retrun value of askCameraPermission
         askCameraPermission();
-
         colorCalculator = new ColorCalculator(getAssets());
         drawingUtils = new DrawingUtils();
-        executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        mainHandler = new Handler(Looper.getMainLooper());
+
+        scheduledExecutorService = Executors.newScheduledThreadPool(1);
+        scheduledExecutorService.scheduleWithFixedDelay(() -> {
+            try{
+                colorCalculator.computeNewName();
+            }catch (Exception e){
+                Log.e(TAG, "Error in the scheduled task", e);
+            }
+        }, 2, 2, TimeUnit.SECONDS);
+
+//        executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+//        mainHandler = new Handler(Looper.getMainLooper());
     }
 
     private boolean initOpenCV() {
@@ -139,8 +151,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     private void initializeCamera() {
         mOpenCvCameraView = findViewById(R.id.openCVCamera);
-        mOpenCvCameraView.disableFpsMeter();
         mOpenCvCameraView.setCameraPermissionGranted();
+//        mOpenCvCameraView.disableFpsMeter();
         mOpenCvCameraView.setVisibility(View.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
     }
@@ -176,7 +188,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        executorService.shutdown();
+        scheduledExecutorService.shutdown();
+//        executorService.shutdown();
     }
 
     @Override
@@ -194,9 +207,14 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         Rect blackRect = drawingUtils.drawSquares(mRgba);
         Mat sub = mRgba.submat(blackRect);
 
-        executorService.submit(new CalculateTask(colorCalculator));
-        executorService.submit(new NewFrameTask(colorCalculator, drawingUtils, sub, mainHandler));
+        colorCalculator.addNewMat(sub);
+
+//        executorService.submit(new NewFrameTask(colorCalculator, drawingUtils, sub, mainHandler));
+//        executorService.submit(new CalculateTask(colorCalculator));
+
+        drawingUtils.setNewColorName(colorCalculator.getMedianName());
         drawingUtils.drawText(mRgba);
+
         return mRgba;
     }
 }
