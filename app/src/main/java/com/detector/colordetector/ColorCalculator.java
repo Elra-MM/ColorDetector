@@ -50,7 +50,7 @@ public class ColorCalculator {
         return medianName;
     }
 
-    protected void addNewMat(Mat newRgba) {
+    protected void computeNewMedian(Mat newRgba) {
         if (newRgba == null || newRgba.empty()) {
             Log.e(TAG, "New frame is null or empty.");
             return;

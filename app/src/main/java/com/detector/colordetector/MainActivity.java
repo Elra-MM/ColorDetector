@@ -8,7 +8,6 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -207,7 +206,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         Rect blackRect = drawingUtils.drawSquares(mRgba);
         Mat sub = mRgba.submat(blackRect);
 
-        colorCalculator.addNewMat(sub);
+        colorCalculator.computeNewMedian(sub);
 
 //        executorService.submit(new NewFrameTask(colorCalculator, drawingUtils, sub, mainHandler));
 //        executorService.submit(new CalculateTask(colorCalculator));
