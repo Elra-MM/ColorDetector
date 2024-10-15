@@ -24,6 +24,7 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
 
 import java.util.Collections;
 import java.util.List;
@@ -191,8 +192,11 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat mRgba = inputFrame.rgba();
 
-        Rect blackRect = drawingUtils.drawSquares(mRgba);
-        Mat sub = mRgba.submat(blackRect);
+        int detectionSquareSize = drawingUtils.getDetectionSquareSize(mRgba);
+        Rect detectionSquare = drawingUtils.getDetectionSquare(mRgba, detectionSquareSize);
+        drawingUtils.drawSquares(mRgba, detectionSquareSize);
+
+        Mat sub = mRgba.submat(detectionSquare);
 
         if (executorServiceComputeMedians.isTerminated()){
             executorServiceComputeMedians = Executors.newFixedThreadPool(1);
