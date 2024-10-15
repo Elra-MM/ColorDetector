@@ -7,7 +7,6 @@ import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -33,15 +32,14 @@ import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
+    private static final String TAG = "MainActivity";
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 200;
     private CameraBridgeViewBase mOpenCvCameraView;
     private ColorCalculator colorCalculator;
     private DrawingUtils drawingUtils;
     private Window window;
-    private ExecutorService executorService;
-    private Handler mainHandler;
+    private ExecutorService executorServiceComputeMedians;
 
-    private final String TAG = "MainActivity";
     private ScheduledExecutorService scheduledExecutorService;
 
     @Override
@@ -74,8 +72,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             }
         }, 2, 2, TimeUnit.SECONDS);
 
-//        executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-//        mainHandler = new Handler(Looper.getMainLooper());
+        executorServiceComputeMedians = Executors.newFixedThreadPool(1);
     }
 
     private boolean initOpenCV() {
@@ -151,7 +148,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private void initializeCamera() {
         mOpenCvCameraView = findViewById(R.id.openCVCamera);
         mOpenCvCameraView.setCameraPermissionGranted();
-//        mOpenCvCameraView.disableFpsMeter();
+        mOpenCvCameraView.disableFpsMeter();
         mOpenCvCameraView.setVisibility(View.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
     }
@@ -188,7 +185,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             mOpenCvCameraView.disableView();
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         scheduledExecutorService.shutdown();
-//        executorService.shutdown();
+        executorServiceComputeMedians.shutdown();
     }
 
     @Override
@@ -206,11 +203,12 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         Rect blackRect = drawingUtils.drawSquares(mRgba);
         Mat sub = mRgba.submat(blackRect);
 
-        colorCalculator.computeNewMedian(sub);
+        if (executorServiceComputeMedians.isTerminated()){
+            executorServiceComputeMedians = Executors.newFixedThreadPool(1);
+            executorServiceComputeMedians.submit(() -> colorCalculator.computeNewMedian(sub));
 
-//        executorService.submit(new NewFrameTask(colorCalculator, drawingUtils, sub, mainHandler));
-//        executorService.submit(new CalculateTask(colorCalculator));
-
+        }
+        executorServiceComputeMedians.shutdown();
         drawingUtils.setNewColorName(colorCalculator.getMedianName());
         drawingUtils.drawText(mRgba);
 
