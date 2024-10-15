@@ -2,6 +2,7 @@ package com.detector.colordetector;
 
 import android.content.res.AssetManager;
 import android.util.Log;
+import android.widget.TextView;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -38,20 +39,16 @@ public class ColorCalculator {
     private final String SETNAME = "colorset.csv";
     public static final int ENGLISH = 7;
     public static final int FRENCH = 8;
-
     private final Mat mCIELab;
     private HashMap<String, List<Double>> colorSetCIE = new HashMap<>();
-    private String medianName = "";
     private boolean isRunning;
+    private final TextView textView;
 
-    protected ColorCalculator(AssetManager assets) {
+    protected ColorCalculator(AssetManager assets, TextView textView) {
         mCIELab = new Mat();
         mediansColor = new ArrayList<>();
         colorSetCIE = createColorSet(assets);
-    }
-
-    protected String getMedianName() {
-        return medianName;
+        this.textView = textView;
     }
 
     protected void computeNewMedian(Mat newRgba) {
@@ -66,12 +63,12 @@ public class ColorCalculator {
     protected void computeNewName() {
         if (!isRunning)
         {
-            medianName = "";
             return;
         }
 
-        medianName = getNameCIE(computeAverage(mediansColor));
+        String medianName = getNameCIE(computeAverage(mediansColor));
         mediansColor.clear();
+        textView.post(() -> textView.setText(medianName));
     }
 
     private Scalar computeAverage(List<Scalar> scalars) {

@@ -23,7 +23,6 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
 
 import java.util.Collections;
 import java.util.List;
@@ -58,7 +57,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         askCameraPermission();
 
-        colorCalculator = new ColorCalculator(getAssets());
+        colorCalculator = new ColorCalculator(getAssets(), findViewById(R.id.color_txt));
         drawingUtils = new DrawingUtils();
 
         scheduleComputationOfNewName();
@@ -210,9 +209,6 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         }
         executorServiceComputeMedians.shutdown();
-        drawingUtils.setNewColorName(colorCalculator.getMedianName());
-        drawingUtils.drawText(mRgba);
-
         return mRgba;
     }
 

@@ -7,12 +7,17 @@
 
     <!-- [camera_view] -->
     <org.opencv.android.JavaCameraView
+        android:id="@+id/openCVCamera"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:visibility="gone"
-        android:id="@+id/openCVCamera"
-        opencv:show_fps="true"
-        opencv:camera_id="any" />
+        android:visibility="invisible"
+        opencv:camera_id="any"
+        opencv:show_fps="true" />
     <!-- [camera_view] -->
+
+    <include
+        layout="@layout/color_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
 </FrameLayout>
