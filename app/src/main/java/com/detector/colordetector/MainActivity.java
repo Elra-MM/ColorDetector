@@ -13,7 +13,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -62,6 +61,12 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         colorCalculator = new ColorCalculator(getAssets());
         drawingUtils = new DrawingUtils();
 
+        scheduleComputationOfNewName();
+
+        executorServiceComputeMedians = Executors.newFixedThreadPool(1);
+    }
+
+    private void scheduleComputationOfNewName() {
         scheduledExecutorService = Executors.newScheduledThreadPool(1);
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try{
@@ -70,8 +75,6 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                 Log.e(TAG, "Error in the scheduled task", e);
             }
         }, 2, 2, TimeUnit.SECONDS);
-
-        executorServiceComputeMedians = Executors.newFixedThreadPool(1);
     }
 
     private void initOpenCV() {
@@ -129,7 +132,6 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                     initializeCamera();
                     Log.d(TAG, "Permissions granted");
                 } else {
-                    //TODO : Add a popup to inform the user that the app will close with error message and close the app
                     Log.d(TAG, "It seems that your device does not support camera (or it is locked). Application will be closed.");
                     showPopup("It seems that your device does not support camera (or it is locked). Application will be closed.");
                 }
@@ -154,6 +156,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             mOpenCvCameraView.disableView();
 
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        scheduledExecutorService.shutdown();
     }
 
     @Override
@@ -163,6 +166,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             mOpenCvCameraView.enableView();
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         askCameraPermission();
+        scheduleComputationOfNewName();
     }
 
     @Override
@@ -182,10 +186,12 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     @Override
     public void onCameraViewStarted(int width, int height) {
+        scheduleComputationOfNewName();
     }
 
     @Override
     public void onCameraViewStopped() {
+        scheduledExecutorService.shutdown();
     }
 
     @Override
