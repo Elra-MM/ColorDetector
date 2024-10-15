@@ -1,6 +1,7 @@
 package com.detector.colordetector;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.camera2.CameraAccessException;
@@ -11,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -46,10 +48,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (!initOpenCV())
-            //TODO : Add popup to inform the user that the app will close with error message and
-            // close the app
-            return;
+        initOpenCV();
 
         setContentView(R.layout.activity_main);
         window = getWindow();
@@ -57,9 +56,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         // Keep the screen on
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        //TODO : Add a popup to inform the user that the app will close with error message and close
-        // the app and add a retrun value of askCameraPermission
         askCameraPermission();
+
         colorCalculator = new ColorCalculator(getAssets());
         drawingUtils = new DrawingUtils();
 
@@ -75,16 +73,14 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         executorServiceComputeMedians = Executors.newFixedThreadPool(1);
     }
 
-    private boolean initOpenCV() {
+    private void initOpenCV() {
         if (OpenCVLoader.initLocal())
         {
             Log.i(TAG, "OpenCV init success");
-            return true;
         }
         else {
             Log.e(TAG, "OpenCV init failed");
-            (Toast.makeText(this, "OpenCV initialization failed!", Toast.LENGTH_LONG)).show();
-            return false;
+            showPopup("OpenCV initialization failed!");
         }
     }
 
@@ -98,8 +94,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                 Log.d(TAG, "Permissions granted");
             } else {
                 Log.d(TAG, "It seems that your device does not support camera (or it is locked). Application will be closed.");
-                Toast.makeText(this, "It seems that your device does not support camera (or it is locked). Application will be closed.", Toast.LENGTH_LONG).show();
-                finish();
+                showPopup("It seems that your device does not support camera (or it is locked). Application will be closed.");
             }
         }
     }
@@ -135,12 +130,10 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                 } else {
                     //TODO : Add a popup to inform the user that the app will close with error message and close the app
                     Log.d(TAG, "It seems that your device does not support camera (or it is locked). Application will be closed.");
-                    Toast.makeText(this, "It seems that your device does not support camera (or it is locked). Application will be closed.", Toast.LENGTH_LONG).show();
-                    finish();
+                    showPopup("It seems that your device does not support camera (or it is locked). Application will be closed.");
                 }
             } else {
-                Toast.makeText(this, "Camera permission is required to use this app", Toast.LENGTH_LONG).show();
-                finish();
+                showPopup("Camera permission is required to use this app. Application will be closed.");
             }
         }
     }
@@ -168,8 +161,6 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.enableView();
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        //TODO : Add a popup to inform the user that the app will close with error message and close
-        // the app and add a retrun value of askCameraPermission
         askCameraPermission();
     }
 
@@ -213,5 +204,20 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         drawingUtils.drawText(mRgba);
 
         return mRgba;
+    }
+
+    private void showPopup(String msg) {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.popup);
+
+        dialog.<TextView>findViewById(R.id.popup_txt).setText(msg);
+
+        View btn = dialog.findViewById(R.id.popup_btn);
+        btn.setOnClickListener(v -> {
+            dialog.dismiss();
+            finish();
+        });
+
+        dialog.show();
     }
 }
