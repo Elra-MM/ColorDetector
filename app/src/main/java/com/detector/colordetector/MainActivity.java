@@ -66,6 +66,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     }
 
     private void scheduleComputationOfNewName() {
+        if (scheduledExecutorService != null && !scheduledExecutorService.isShutdown() && !scheduledExecutorService.isTerminated())
+            return;
         scheduledExecutorService = Executors.newScheduledThreadPool(1);
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try{
