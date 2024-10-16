@@ -70,30 +70,25 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             return;
         scheduledExecutorService = Executors.newScheduledThreadPool(1);
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
-            try{
+            try {
                 colorCalculator.computeNewName();
-            }catch (Exception e){
+            } catch (Exception e) {
                 Log.e(TAG, "Error in the scheduled task", e);
             }
         }, 2, 2, TimeUnit.SECONDS);
     }
 
     private void initOpenCV() {
-        if (OpenCVLoader.initLocal())
-        {
+        if (OpenCVLoader.initLocal()) {
             Log.i(TAG, "OpenCV init success");
-        }
-        else {
+        } else {
             Log.e(TAG, "OpenCV init failed");
             showPopup("OpenCV initialization failed!");
         }
     }
 
     private void askCameraPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
-            Log.d(TAG, "Permission prompt");
-        } else {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             if (isCameraAvailable()) {
                 initializeCamera();
                 Log.d(TAG, "Permissions granted");
@@ -101,6 +96,9 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                 Log.d(TAG, "It seems that your device does not support camera (or it is locked). Application will be closed.");
                 showPopup("It seems that your device does not support camera (or it is locked). Application will be closed.");
             }
+        } else {
+//            OpenCV already call the request permission
+//            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
         }
     }
 
@@ -125,18 +123,18 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 if (isCameraAvailable()) {
                     initializeCamera();
                     Log.d(TAG, "Permissions granted");
                 } else {
-                    Log.d(TAG, "It seems that your device does not support camera (or it is locked). Application will be closed.");
+                    Log.e(TAG, "It seems that your device does not support camera (or it is locked). Application will be closed.");
                     showPopup("It seems that your device does not support camera (or it is locked). Application will be closed.");
                 }
             } else {
+                Log.e(TAG, "else show popup , grantResults.length: " + grantResults.length);
                 showPopup("Camera permission is required to use this app. Application will be closed.");
             }
         }
@@ -205,7 +203,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         Mat sub = mRgba.submat(detectionSquare);
 
-        if (executorServiceComputeMedians.isTerminated()){
+        if (executorServiceComputeMedians.isTerminated()) {
             executorServiceComputeMedians = Executors.newFixedThreadPool(1);
             executorServiceComputeMedians.submit(() -> colorCalculator.computeNewMedian(sub));
 
