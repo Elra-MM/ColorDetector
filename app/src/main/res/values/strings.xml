@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">ColorDetector</string>
+    <string name="opencv_init_failed">OpenCV initialization failed. Application will be closed.</string>
+    <string name="camera_not_available">It seems that your device does not support camera (or it is locked). Application will be closed.</string>
+    <string name="camera_not_granted">Camera permission is required to use this app. Application will be closed.</string>
 </resources>

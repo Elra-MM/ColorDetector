@@ -83,7 +83,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             Log.i(TAG, "OpenCV init success");
         } else {
             Log.e(TAG, "OpenCV init failed");
-            showPopup("OpenCV initialization failed!");
+            showPopup("opencv_init_failed");
         }
     }
 
@@ -94,7 +94,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                 Log.d(TAG, "Permissions granted");
             } else {
                 Log.d(TAG, "It seems that your device does not support camera (or it is locked). Application will be closed.");
-                showPopup("It seems that your device does not support camera (or it is locked). Application will be closed.");
+                showPopup("camera_not_available");
             }
         } else {
 //            OpenCV already call the request permission
@@ -131,11 +131,11 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                     Log.d(TAG, "Permissions granted");
                 } else {
                     Log.e(TAG, "It seems that your device does not support camera (or it is locked). Application will be closed.");
-                    showPopup("It seems that your device does not support camera (or it is locked). Application will be closed.");
+                    showPopup("camera_not_available");
                 }
             } else {
                 Log.e(TAG, "else show popup , grantResults.length: " + grantResults.length);
-                showPopup("Camera permission is required to use this app. Application will be closed.");
+                showPopup("camera_not_granted");
             }
         }
     }
@@ -212,10 +212,11 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         return mRgba;
     }
 
-    private void showPopup(String msg) {
+    private void showPopup(String msgKey) {
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.popup);
 
+        String msg = getString(getResources().getIdentifier(msgKey, "string", getPackageName()));
         dialog.<TextView>findViewById(R.id.popup_txt).setText(msg);
 
         View btn = dialog.findViewById(R.id.popup_btn);
