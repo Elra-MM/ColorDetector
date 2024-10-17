@@ -36,7 +36,7 @@ public class ColorCalculator {
     private List<Scalar> mediansColor;
     private final String TAG = "ColorCalculator";
 
-    private final String SETNAME = "colorset.csv";
+    private final String SETNAME = "colorsetCut.csv";
     public static final int ENGLISH = 7;
     public static final int FRENCH = 8;
     private final Mat mCIELab;
