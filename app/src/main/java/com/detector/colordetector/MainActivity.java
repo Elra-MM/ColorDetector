@@ -75,7 +75,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             } catch (Exception e) {
                 Log.e(TAG, "Error in the scheduled task", e);
             }
-        }, 2, 2, TimeUnit.SECONDS);
+        }, 1, 1, TimeUnit.SECONDS);
     }
 
     private void initOpenCV() {
