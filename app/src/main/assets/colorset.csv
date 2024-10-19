@@ -1,140 +1,115 @@
 ﻿HEX;R;G;B;CIE_L;CIE_A;CIE_B;English;French
 #CD5C5C;205;92;92;53.39;45.12;21.63; Indian Red;Rouge indien
-#F08080;240;128;128;66.15;43.15;18.95; Light Coral;Corail Clair
+#F08080;240;128;128;66.15;43.15;18.95; Light Coral;Corail
 #FA8072;250;128;114;67.26;45.57;28.53; Salmon;Saumon
-#E9967A;233;150;122;69.85;28.51;27.12; Dark Salmon;Saumon foncé
-#FFA07A;255;160;122;74.70;31.83;33.95; Light Salmon;Saumon clair
-#DC143C;220;20;60;47.03;71.22;33.23; Crimson;Cramoisi
+#E9967A;233;150;122;69.85;28.51;27.12; Dark Salmon;Saumon
+#FFA07A;255;160;122;74.70;31.83;33.95; Light Salmon;Saumon
+#DC143C;220;20;60;47.03;71.22;33.23; Crimson;Rouge
 #FF0000;255;0;0;53.23;80.42;66.97; Red;Rouge
 #B22222;178;34;34;39.11;56.17;37.37; Fire Brick;Rouge brique
 #8B0000;139;0;0;28.08;51.21;41.19; Dark Red;Rouge Foncé
 #FFC0CB;255;192;203;83.58;24.53;2.49; Pink;Rose
-#FFB6C1;255;182;193;81.05;28.34;4.23; Light Pink;Rose clair
-#FF69B4;255;105;180;65.48;64.60;-11.40; Hot Pink;Rose vif
-#FF1493;255;20;147;55.95;84.88;-6.35; Deep Pink;Rose profond
-#C71585;199;21;133;44.76;71.28;-15.77; Medium Violet Red;Violet Rouge Moyen
-#DB7093;219;112;147;60.56;45.84;-0.25; Pale Violet Red;Violet Rouge Pâle
-#FFA07A;255;160;122;74.70;31.83;33.95; Light Salmon;Saumon clair
+#FFB6C1;255;182;193;81.05;28.34;4.23; Light Pink;Rose
+#FF69B4;255;105;180;65.48;64.60;-11.40; Hot Pink;Rose
+#FF1493;255;20;147;55.95;84.88;-6.35; Deep Pink;Rose
+#C71585;199;21;133;44.76;71.28;-15.77; Medium Violet Red;Violet Rouge
+#DB7093;219;112;147;60.56;45.84;-0.25; Pale Violet Red;Violet Rouge
 #FF7F50;255;127;80;67.29;45.70;47.02; Coral;Corail
-#FF6347;255;99;71;62.20;58.19;45.99; Tomato;Tomate
+#FF6347;255;99;71;62.20;58.19;45.99; Tomato;Rouge
 #FF4500;255;69;0;57.57;68.11;68.69; Orange Red;Orange Rouge
-#FF8C00;255;140;0;69.48;37.17;75.14; Dark Orange;Orange foncé
+#FF8C00;255;140;0;69.48;37.17;75.14; Dark Orange;Orange
 #FFA500;255;165;0;74.93;24.28;78.58; Orange;Orange
-#FFD700;255;215;0;86.93;-1.56;86.70; Gold;Or
+#FFD700;255;215;0;86.93;-1.56;86.70; Gold;Jaune
 #FFFF00;255;255;0;97.14;-21.17;93.99; Yellow;Jaune
-#FFFFE0;255;255;224;99.28;-4.70;13.93; Light Yellow;Jaune clair
-#FFFACD;255;250;205;97.65;-5.02;21.38; Lemon Chiffon;Citron Mousseline
-#FAFAD2;250;250;210;97.37;-6.08;18.37; Light Goldenrod Yellow;Jaune or pâle
-#FFEFD5;255;239;213;95.08;1.67;13.65; Papaya Whip;Fouet de Papaye (jaune)
-#FFE4B5;255;228;181;91.72;2.83;25.57; Moccasin;Mocassin (jaune beige)
+#FFFFE0;255;255;224;99.28;-4.70;13.93; Light Yellow;Jaune
+#FFFACD;255;250;205;97.65;-5.02;21.38; Lemon Chiffon;Jaune
+#FAFAD2;250;250;210;97.37;-6.08;18.37; Light Goldenrod Yellow;Jaune
+#FFEFD5;255;239;213;95.08;1.67;13.65; Papaya Whip;Jaune
+#FFE4B5;255;228;181;91.72;2.83;25.57; Moccasin;Jaune
 #FFDAB9;255;218;185;89.35;8.47;20.23; Peach Puff;Pêche
-#EEE8AA;238;232;170;91.14;-6.97;30.21; Pale Goldenrod;Or pâle
+#EEE8AA;238;232;170;91.14;-6.97;30.21; Pale Goldenrod;Jaune
 #F0E68C;240;230;140;90.33;-8.64;44.30; Khaki;Kaki
-#BDB76B;189;183;107;73.38;-8.48;38.73; Dark Khaki;Kaki Foncé
-#E6E6FA;230;230;250;91.83;4.10;-10.63; Lavender;Lavande
-#D8BFD8;216;191;216;80.08;13.58;-10.09; Thistle;Chardon
+#BDB76B;189;183;107;73.38;-8.48;38.73; Dark Khaki;Kaki
+#D8BFD8;216;191;216;80.08;13.58;-10.09; Thistle;Rose
 #DDA0DD;221;160;221;73.37;32.89;-22.86; Plum;Prune
 #EE82EE;238;130;238;69.69;56.72;-37.72; Violet;Mauve
-#DA70D6;218;112;214;62.80;55.62;-35.25; Orchid;Orchidée
+#DA70D6;218;112;214;62.80;55.62;-35.25; Orchid;Rose
 #FF00FF;255;0;255;60.32;98.61;-61.78; Fuchsia;Fuchsia
 #FF00FF;255;0;255;60.32;98.61;-61.78; Magenta;Magenta
-#BA55D3;186;85;211;53.64;59.37;-48.23; Medium Orchid;Orchidée Moyen
-#9370DB;147;112;219;54.98;37.09;-50.94; Medium Purple;Violet Moyen
-#663399;102;51;153;32.90;43.10;-47.80; Rebecca Purple;Pourpre Foncé
-#8A2BE2;138;43;226;42.19;70.12;-75.63; Blue Violet;Bleu Violet
-#9400D3;148;0;211;39.58;76.60;-71.19; Dark Violet;Violet Foncé
-#9932CC;153;50;204;43.38;65.43;-60.90; Dark Orchid;Orchidée Sombre
-#8B008B;139;0;139;32.60;62.79;-39.34; Dark Magenta;Magenta Foncé
+#BA55D3;186;85;211;53.64;59.37;-48.23; Medium Orchid;Rose
+#9370DB;147;112;219;54.98;37.09;-50.94; Medium Purple;Violet
+#663399;102;51;153;32.90;43.10;-47.80; Rebecca Purple;Pourpre
+#8A2BE2;138;43;226;42.19;70.12;-75.63; Blue Violet;Violet
+#9400D3;148;0;211;39.58;76.60;-71.19; Dark Violet;Violet
+#9932CC;153;50;204;43.38;65.43;-60.90; Dark Orchid;Violet
+#8B008B;139;0;139;32.60;62.79;-39.34; Dark Magenta;Magenta
 #800080;128;0;128;29.78;59.15;-37.06; Purple;Violet
 #4B0082;75;0;130;20.47;51.87;-53.89; Indigo;Indigo
-#6A5ACD;106;90;205;45.34;36.30;-58.58; Slate Blue;Bleu Ardoise
-#483D8B;72;61;139;30.83;26.25;-42.69; Dark Slate Blue;Bleu Ardoise Foncé
-#7B68EE;123;104;238;52.16;41.36;-66.30; Medium Slate Blue;Moyen Ardoise Bleu
+#6A5ACD;106;90;205;45.34;36.30;-58.58; Slate Blue;Bleu
+#483D8B;72;61;139;30.83;26.25;-42.69; Dark Slate Blue;Bleu 
+#7B68EE;123;104;238;52.16;41.36;-66.30; Medium Slate Blue;Bleu
 #ADFF2F;173;255;47;91.96;-52.14;81.36; Green Yellow;Vert Jaune
-#7FFF00;127;255;0;89.87;-67.75;85.31; Chartreuse;Vert Chartreuse
-#7CFC00;124;252;0;88.88;-67.54;84.49; Lawn Green;Vert Pelouse
-#00FF00;0;255;0;87.74;-85.89;82.71; Lime;Vert flash
-#32CD32;50;205;50;72.61;-66.87;60.99; Lime Green;Vert Citron
-#98FB98;152;251;152;90.75;-47.96;37.81; Pale Green;Vert pâle
-#90EE90;144;238;144;86.55;-46.00;36.26; Light Green;Vert clair
-#00FA9A;0;250;154;87.34;-70.37;31.75; Medium Spring Green;Vert Printemps Moyen
-#00FF7F;0;255;127;88.47;-76.59;46.38; Spring Green;Vert Printemps
-#3CB371;60;179;113;65.27;-47.97;23.72; Medium Sea Green;Vert Mer Moyen
-#2E8B57;46;139;87;51.54;-39.51;19.58; Sea Green;Vert Mer
-#228B22;34;139;34;50.59;-49.39;44.68; Forest Green;Vert Forêt
+#7FFF00;127;255;0;89.87;-67.75;85.31; Chartreuse;Vert
+#7CFC00;124;252;0;88.88;-67.54;84.49; Lawn Green;Vert
+#00FF00;0;255;0;87.74;-85.89;82.71; Lime;Vert
+#32CD32;50;205;50;72.61;-66.87;60.99; Lime Green;Vert
+#98FB98;152;251;152;90.75;-47.96;37.81; Pale Green;Vert
+#90EE90;144;238;144;86.55;-46.00;36.26; Light Green;Vert
+#00FA9A;0;250;154;87.34;-70.37;31.75; Medium Spring Green;Vert
+#00FF7F;0;255;127;88.47;-76.59;46.38; Spring Green;Vert
+#3CB371;60;179;113;65.27;-47.97;23.72; Medium Sea Green;Vert
+#2E8B57;46;139;87;51.54;-39.51;19.58; Sea Green;Vert
+#228B22;34;139;34;50.59;-49.39;44.68; Forest Green;Vert
 #008000;0;128;0;46.23;-51.52;49.62; Green;Vert
-#006400;0;100;0;36.20;-43.22;41.62; Dark Green;Vert Foncé
+#006400;0;100;0;36.20;-43.22;41.62; Dark Green;Vert
 #9ACD32;154;205;50;76.54;-37.69;66.13; Yellow Green;Jaune Vert
 #6B8E23;107;142;35;54.65;-27.99;49.34; Olive Drab;Vert Olive
-#808000;128;128;0;51.87;-12.70;56.38; Olive;Olive
-#556B2F;85;107;47;42.23;-18.64;30.26; Dark Olive Green;Vert Olive Foncé
-#66CDAA;102;205;170;75.69;-38.04;7.57; Medium Aquamarine;Aigue-marine Moyen
-#8FBC8B;143;188;139;72.01;-24.21;19.43; Dark Sea Green;Vert Mer Sombre
-#20B2AA;32;178;170;65.79;-37.25;-7.06; Light Sea Green;Vert Mer Clair
-#008B8B;0;139;139;52.21;-30.40;-9.62; Dark Cyan;Cyan Foncé
-#008080;0;128;128;48.26;-28.64;-9.06; Teal;Saphir
-#00FFFF;0;255;255;91.12;-47.74;-15.11; Aqua;Aqua
-#00FFFF;0;255;255;91.12;-47.74;-15.11; Cyan;Cyan
-#E0FFFF;224;255;255;97.87;-9.54;-4.36; Light Cyan;Cyan clair
-#AFEEEE;175;238;238;90.06;-19.27;-7.33; Pale Turquoise;Turquoise pâle
+#808000;128;128;0;51.87;-12.70;56.38; Olive;Vert Olive
+#556B2F;85;107;47;42.23;-18.64;30.26; Dark Olive Green;Vert Olive
+#66CDAA;102;205;170;75.69;-38.04;7.57; Medium Aquamarine;Vert
+#8FBC8B;143;188;139;72.01;-24.21;19.43; Dark Sea Green;Bleu Vert
+#20B2AA;32;178;170;65.79;-37.25;-7.06; Light Sea Green;Bleu Vert
+#008B8B;0;139;139;52.21;-30.40;-9.62; Dark Cyan;Bleu vert
+#008080;0;128;128;48.26;-28.64;-9.06; Teal;Bleu vert
+#00FFFF;0;255;255;91.12;-47.74;-15.11; Aqua;Bleu
+#00FFFF;0;255;255;91.12;-47.74;-15.11; Cyan;Bleu
+#E0FFFF;224;255;255;97.87;-9.54;-4.36; Light Cyan;Bleu
+#AFEEEE;175;238;238;90.06;-19.27;-7.33; Pale Turquoise;Turquoise
 #7FFFD4;127;255;212;92.04;-45.17;8.85; Aquamarine;Bleu vert
 #40E0D0;64;224;208;81.27;-43.77;-4.87; Turquoise;Turquoise
-#48D1CC;72;209;204;76.88;-37.05;-9.18; Medium Turquoise;Turquoise Moyen
-#00CED1;0;206;209;75.29;-39.74;-14.35; Dark Turquoise;Turquoise Foncé
-#5F9EA0;95;158;160;61.15;-19.42;-8.11; Cadet Blue;Bleu Cadet
-#4682B4;70;130;180;52.47;-3.83;-32.93; Steel Blue;Bleu acier
-#B0C4DE;176;196;222;78.45;-0.94;-16.09; Light Steel Blue;Bleu Acier clair
-#B0E0E6;176;224;230;86.13;-13.73;-8.91; Powder Blue;Bleu Pastel
+#48D1CC;72;209;204;76.88;-37.05;-9.18; Medium Turquoise;Turquoise
+#00CED1;0;206;209;75.29;-39.74;-14.35; Dark Turquoise;Turquoise
+#5F9EA0;95;158;160;61.15;-19.42;-8.11; Cadet Blue;Bleu clair
+#4682B4;70;130;180;52.47;-3.83;-32.93; Steel Blue;Bleu
+#B0C4DE;176;196;222;78.45;-0.94;-16.09; Light Steel Blue;Bleu clair
+#B0E0E6;176;224;230;86.13;-13.73;-8.91; Powder Blue;Bleu clair
 #ADD8E6;173;216;230;83.81;-10.54;-12.38; Light Blue;Bleu clair
-#87CEEB;135;206;235;79.21;-14.50;-22.19; Sky Blue;Bleu ciel
-#87CEFA;135;206;250;79.73;-10.49;-29.46; Light Sky Blue;Bleu ciel clair
-#00BFFF;0;191;255;72.55;-17.35;-43.50; Deep Sky Blue;Bleu ciel profond
-#1E90FF;30;144;255;59.38;10.25;-64.34; Dodger Blue;Bleu Cagnard
-#6495ED;100;149;237;61.93;9.63;-50.20; Cornflower Blue;Bleuet
-#7B68EE;123;104;238;52.16;41.36;-66.30; Medium Slate Blue;Bleu Ardoise Moyen
+#87CEEB;135;206;235;79.21;-14.50;-22.19; Sky Blue;Bleu clair
+#87CEFA;135;206;250;79.73;-10.49;-29.46; Light Sky Blue;Bleu clair
+#00BFFF;0;191;255;72.55;-17.35;-43.50; Deep Sky Blue;Bleu clair
+#1E90FF;30;144;255;59.38;10.25;-64.34; Dodger Blue;Bleu
+#6495ED;100;149;237;61.93;9.63;-50.20; Cornflower Blue;Bleu
+#7B68EE;123;104;238;52.16;41.36;-66.30; Medium Slate Blue;Bleu violet
 #4169E1;65;105;225;47.83;26.52;-66.13; Royal Blue;Bleu Royal
 #0000FF;0;0;255;32.30;79.43;-108.80; Blue;Bleu
-#0000CD;0;0;205;24.98;67.39;-92.29; Medium Blue;Bleu moyen
+#0000CD;0;0;205;24.98;67.39;-92.29; Medium Blue;Bleu
 #00008B;0;0;139;14.76;50.58;-69.28; Dark Blue;Bleu Foncé
-#000080;0;0;128;12.98;47.65;-65.26; Navy;Marine
+#000080;0;0;128;12.98;47.65;-65.26; Navy;Bleu Marine
 #191970;25;25;112;15.86;31.86;-50.09; Midnight Blue;Bleu nuit
-#FFF8DC;255;248;220;97.46;-1.81;13.40; Cornsilk;Soie de maïs
-#FFEBCD;255;235;205;93.92;2.53;16.18; Blanched Almond;Amande blanchie
-#FFE4C4;255;228;196;92.01;4.82;18.19; Bisque;Bisque
-#FFDEAD;255;222;173;90.10;4.90;27.51; Navajo White;Blanc Navajo
-#F5DEB3;245;222;179;89.35;1.89;23.23; Wheat;Blé
-#DEB887;222;184;135;77.02;7.39;29.38; Burly Wood;Beige Foncé
-#D2B48C;210;180;140;74.97;5.35;23.78; Tan;Or Foncé
+#D2B48C;210;180;140;74.97;5.35;23.78; Tan;Beige
 #BC8F8F;188;143;143;63.61;17.32;5.96; Rosy Brown;Marron rosé
-#F4A460;244;164;96;73.95;23.37;46.26; Sandy Brown;Marron orange
+#F4A460;244;164;96;73.95;23.37;46.26; Sandy Brown;Orange
 #DAA520;218;165;32;70.82;8.84;68.37; Goldenrod;Or
 #B8860B;184;134;11;59.22;10.14;62.41; Dark Goldenrod;Or Foncé
-#CD853F;205;133;63;61.75;21.69;47.50; Peru;Marron Pérou
-#D2691E;210;105;30;55.99;37.35;56.41; Chocolate;Chocolat
+#CD853F;205;133;63;61.75;21.69;47.50; Peru;Marron Orangé
+#D2691E;210;105;30;55.99;37.35;56.41; Chocolate;Marron Chocolat
 #8B4513;139;69;19;37.47;26.66;40.74; Saddle Brown;Marron
-#A0522D;160;82;45;43.80;29.56;35.31; Sienna;Marron terre
-#A52A2A;165;42;42;37.52;49.93;30.24; Brown;Marron Brun
+#A0522D;160;82;45;43.80;29.56;35.31; Sienna;Marron
+#A52A2A;165;42;42;37.52;49.93;30.24; Brown;Marron
 #800000;128;0;0;25.53;48.24;37.97; Maroon;Bordeaux
 #FFFFFF;255;255;255;100.00;0.42;-0.99; White;Blanc
-#FFFAFA;255;250;250;98.64;2.07;-0.38; Snow;Neige
-#F0FFF0;240;255;240;98.57;-7.16;4.53; Honey Dew;vert très pâle
-#F5FFFA;245;255;250;99.16;-3.75;0.27; Mint Cream;Menthe Crème
-#F0FFFF;240;255;255;98.93;-4.47;-2.67; Azure;Azure
-#F0F8FF;240;248;255;97.18;-0.94;-5.25; Alice Blue;Bleu Foncé pastel
-#F8F8FF;248;248;255;97.76;1.66;-4.33; Ghost White;Fantôme Blanc
-#F5F5F5;245;245;245;96.54;0.41;-0.96; White Smoke;Blanc Fumée
-#FFF5EE;255;245;238;97.12;2.57;3.61; Sea Shell;Coquillage
-#F5F5DC;245;245;220;95.95;-3.79;11.16; Beige;Beige pastel
-#FDF5E6;253;245;230;96.78;0.58;7.25; Old Lace;Vieille Dentelle
-#FFFAF0;255;250;240;98.40;0.38;4.43; Floral White;Floral Blanc
-#FFFFF0;255;255;240;99.64;-2.14;6.21; Ivory;Ivoire
-#FAEBD7;250;235;215;93.73;2.24;10.65; Antique White;Antique Blanc
-#FAF0E6;250;240;230;95.31;2.08;5.10; Linen;Lin
-#FFF0F5;255;240;245;96.07;6.30;-1.55; Lavender Blush;Lavande Pastel
+#FAF0E6;250;240;230;95.31;2.08;5.10; Linen;Blanc cassé
+#FFF0F5;255;240;245;96.07;6.30;-1.55; Lavender Blush;Rose Pastel
 #FFE4E1;255;228;225;92.66;9.15;3.93; Misty Rose;Rose Pastel
-#D3D3D3;211;211;211;84.56;0.36;-0.86; Light Gray;Gris clair
-#C0C0C0;192;192;192;77.70;0.34;-0.80; Silver;Argent
-#A9A9A9;169;169;169;69.24;0.31;-0.73; Dark Gray;Gris Foncé
 #808080;128;128;128;53.59;0.25;-0.59; Gray;Gris
-#696969;105;105;105;44.41;0.22;-0.51; Dim Gray;Gris Mat
 #000000;0;0;0;0.00;0.00;0.00; Black;Noir

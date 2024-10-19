@@ -1,14 +1,20 @@
 ﻿HEX;R;G;B;CIE_L;CIE_A;CIE_B;English;French
 #FA8072;250;128;114;67.26;45.57;28.53; Salmon;Saumon
+#CD5C5C;205;92;92;53.39;45.12;21.63; Indian Red;Rouge
+#DC143C;220;20;60;47.03;71.22;33.23; Crimson;Rouge
 #FF0000;255;0;0;53.23;80.42;66.97; Red;Rouge
 #8B0000;139;0;0;28.08;51.21;41.19; Dark Red;Rouge Foncé
+#B22222;178;34;34;39.11;56.17;37.37; Fire Brick;Rouge brique
 #FFC0CB;255;192;203;83.58;24.53;2.49; Pink;Rose
-#C71585;199;21;133;44.76;71.28;-15.77; Medium Violet Red;Violet Rouge
+#FFB6C1;255;182;193;81.05;28.34;4.23; Light Pink;Rose clair
+#FF69B4;255;105;180;65.48;64.60;-11.40; Hot Pink;Rose vif
 #FF7F50;255;127;80;67.29;45.70;47.02; Coral;Corail
+#FF6347;255;99;71;62.20;58.19;45.99; Tomato;Rouge Tomate
 #FFA500;255;165;0;74.93;24.28;78.58; Orange;Orange
+#FF8C00;255;140;0;69.48;37.17;75.14; Dark Orange;Orange foncé
 #FFFF00;255;255;0;97.14;-21.17;93.99; Yellow;Jaune
 #FFDAB9;255;218;185;89.35;8.47;20.23; Peach Puff;Pêche
-#E6E6FA;230;230;250;91.83;4.10;-10.63; Lavender;Lavande
+#E6E6FA;230;230;250;91.83;5;-10.63; Lavender;Lavande
 #800080;128;0;128;29.78;59.15;-37.06; Purple;Violet
 #FF00FF;255;0;255;60.32;98.61;-61.78; Fuchsia;Fuchsia
 #8A2BE2;138;43;226;42.19;70.12;-75.63; Blue Violet;Bleu Violet
@@ -18,15 +24,21 @@
 #808000;128;128;0;51.87;-12.70;56.38; Olive;Vert Olive
 #00FFFF;0;255;255;91.12;-47.74;-15.11; Cyan;Cyan
 #7FFFD4;127;255;212;92.04;-45.17;8.85; Aquamarine;Bleu vert
-#40E0D0;64;224;208;81.27;-43.77;-4.87; Turquoise;Turquoise
+#40E0D0;64;224;208;81.27;-43.77;-4.87; Turquoise;Bleu Turquoise
+#B0E0E6;176;224;230;86.13;-13.73;-8.91; Powder Blue;Bleu Pastel
 #ADD8E6;173;216;230;83.81;-10.54;-12.38; Light Blue;Bleu clair
+#87CEEB;135;206;235;79.21;-14.50;-22.19; Sky Blue;Bleu ciel
+#87CEFA;135;206;250;79.73;-10.49;-29.46; Light Sky Blue;Bleu ciel clair
+#00BFFF;0;191;255;72.55;-17.35;-43.50; Deep Sky Blue;Bleu ciel
 #0000FF;0;0;255;32.30;79.43;-108.80; Blue;Bleu
+#4169E1;65;105;225;47.83;26.52;-66.13; Royal Blue;Bleu Royal
+#00008B;0;0;139;14.76;50.58;-69.28; Dark Blue;Bleu Foncé
 #000080;0;0;128;12.98;47.65;-65.26; Navy;Bleu Marine
 #F5DEB3;245;222;179;89.35;1.89;23.23; Wheat;Blé
 #DEB887;222;184;135;77.02;7.39;29.38; Burly Wood;Beige Foncé
 #D2691E;210;105;30;55.99;37.35;56.41; Chocolate;Chocolat
-#A52A2A;165;42;42;37.52;49.93;30.24; Brown;Marron brun
+#A52A2A;165;42;42;37.52;49.93;30.24; Brown;Marron
 #800000;128;0;0;25.53;48.24;37.97; Maroon;Bordeaux
-#FFFFFF;255;255;255;100.00;0.42;-0.99; White;Blanc
-#808080;128;128;128;53.59;0.25;-0.59; Gray;Gris
+#FFFFFF;255;255;255;100.00;0;0; White;Blanc
+#808080;128;128;128;50;1;-1; Gray;Gris
 #000000;0;0;0;0.00;0.00;0.00; Black;Noir
