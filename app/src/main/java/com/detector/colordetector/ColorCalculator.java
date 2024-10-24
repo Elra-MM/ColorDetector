@@ -4,6 +4,7 @@ import android.content.res.AssetManager;
 import android.util.Log;
 import android.widget.TextView;
 
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
@@ -24,6 +25,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import static org.opencv.imgproc.Imgproc.COLOR_HSV2RGB;
+import static org.opencv.imgproc.Imgproc.COLOR_RGB2HSV;
 import static org.opencv.imgproc.Imgproc.COLOR_RGB2Lab;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
@@ -57,7 +60,30 @@ public class ColorCalculator {
             return;
         }
         isRunning = true;
-        mediansColor.add(computeMedian(newRgba));
+        mediansColor.add(computeMedian(convertMat(newRgba)));
+    }
+
+    private Mat convertMat(Mat rgba) {
+        return normalizeMat(enhanceColor(rgba));
+    }
+
+    private Mat normalizeMat(Mat rgba){
+        Mat normalizedRgba = new Mat();
+        rgba.convertTo(normalizedRgba, CvType.CV_32F, 1.0 / 255.0);
+        rgba2CIELab(normalizedRgba, mCIELab);
+        return normalizedRgba;
+    }
+
+    private Mat enhanceColor(Mat rgba){
+        Mat hsv = new Mat();
+        cvtColor(rgba, hsv, COLOR_RGB2HSV);
+
+        List<Mat> hsvChannels = new ArrayList<>();
+        Core.split(hsv, hsvChannels);
+        Core.multiply(hsvChannels.get(1), new Scalar(2), hsvChannels.get(1)); // Increase the saturation
+        Core.merge(hsvChannels, hsv);
+        cvtColor(hsv, rgba, COLOR_HSV2RGB);
+        return rgba;
     }
 
     protected void computeNewName() {
@@ -83,9 +109,7 @@ public class ColorCalculator {
     }
 
     private Scalar computeMedian(Mat newRgba) {
-        Mat normalizedRgba = new Mat();
-        newRgba.convertTo(normalizedRgba, CvType.CV_32F, 1.0 / 255.0);
-        rgba2CIELab(normalizedRgba, mCIELab);
+
         return computeMedianCIE(mCIELab);
     }
 
