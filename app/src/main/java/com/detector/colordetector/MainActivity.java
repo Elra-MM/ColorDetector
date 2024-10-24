@@ -3,6 +3,7 @@ package com.detector.colordetector;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -63,6 +65,12 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         scheduleComputationOfNewName();
 
         executorServiceComputeMedians = Executors.newFixedThreadPool(1);
+
+        Button privacyPolicyButton = findViewById(R.id.button_privacy_policy);
+        privacyPolicyButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, PrivacyPolicyActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void scheduleComputationOfNewName() {

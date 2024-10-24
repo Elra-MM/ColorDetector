@@ -4,4 +4,5 @@
     <string name="opencv_init_failed">L\'initialisation d\'OpenCV a échoué. L\'application va fermer</string>
     <string name="camera_not_available">Il semblerait que votre téléphone ne supporte pas la caméra ou qu\\\'elle soit déjà utilisée. L\\\'application va fermer</string>
     <string name="camera_not_granted">La caméra est obligatoire. Changez les paramètres d\'autorisation si vous voulez utiliser l\'application.</string>
+    <string name="privacy_policy">politique de confidentialité</string>
 </resources>
