@@ -2,7 +2,7 @@
 Easy app to detect the color at the center of the screen.
 **Free for non-commercial use.**
 
-INSTALLATION : 
+# How to Intall : 
 
 1. Fork the repository
 2. Follow this setup guide to compile the project with Android Studio: https://docs.opencv.org/4.x/d5/df8/tutorial_dev_with_OCV_on_Android.html
