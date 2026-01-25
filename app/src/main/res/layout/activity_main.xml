@@ -6,7 +6,7 @@
     android:layout_height="match_parent" >
 
     <!-- [camera_view] -->
-    <org.opencv.android.JavaCameraView
+    <com.detector.colordetector.ZoomableCameraView
         android:id="@+id/openCVCamera"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"

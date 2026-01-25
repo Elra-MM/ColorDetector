@@ -10,11 +10,14 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import org.opencv.android.CameraActivity;
@@ -45,6 +48,10 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private ScheduledExecutorService nameUpdateExecutor;
     private final AtomicBoolean isProcessingFrame = new AtomicBoolean(false);
 
+    private ScaleGestureDetector scaleGestureDetector;
+    private float zoomFactor = 1.0f;
+    private float maxZoom = 1.0f;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,8 +61,6 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         setContentView(R.layout.activity_main);
         window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        askCameraPermission();
 
         colorCalculator = new ColorCalculator(getAssets(), findViewById(R.id.color_txt));
         drawingUtils = new DrawingUtils();
@@ -68,6 +73,32 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             Intent intent = new Intent(MainActivity.this, PrivacyPolicyActivity.class);
             startActivity(intent);
         });
+
+        setupZoom();
+        askCameraPermission();
+    }
+
+    private void setupZoom() {
+        scaleGestureDetector = new ScaleGestureDetector(this, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            @Override
+            public boolean onScale(ScaleGestureDetector detector) {
+                zoomFactor *= detector.getScaleFactor();
+                zoomFactor = Math.max(1.0f, Math.min(zoomFactor, maxZoom));
+                
+                if (mOpenCvCameraView instanceof ZoomableCameraView) {
+                    ((ZoomableCameraView) mOpenCvCameraView).setZoom(zoomFactor);
+                }
+                return true;
+            }
+        });
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (scaleGestureDetector != null) {
+            scaleGestureDetector.onTouchEvent(event);
+        }
+        return super.onTouchEvent(event);
     }
 
     private void startNameUpdateTimer() {
@@ -77,7 +108,9 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         nameUpdateExecutor = Executors.newSingleThreadScheduledExecutor();
         nameUpdateExecutor.scheduleWithFixedDelay(() -> {
             try {
-                colorCalculator.computeNewName();
+                if (colorCalculator != null) {
+                    colorCalculator.computeNewName();
+                }
             } catch (Exception e) {
                 Log.e(TAG, "Error in scheduled name update", e);
             }
@@ -94,42 +127,37 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     }
 
     private void askCameraPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            if (isCameraAvailable()) {
-                initializeCamera();
-            } else {
-                showPopup("camera_not_available");
-            }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
+        } else {
+            initializeCamera();
         }
-        // Permission request is handled by OpenCV CameraActivity/BaseLoaderCallback usually, 
-        // but can be added explicitly if needed.
     }
 
-    private boolean isCameraAvailable() {
+    private void fetchMaxZoom() {
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
             for (String cameraId : cameraManager.getCameraIdList()) {
                 CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
                 Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
-                    return true;
+                    Float maxZoomValue = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
+                    if (maxZoomValue != null) {
+                        this.maxZoom = maxZoomValue;
+                    }
+                    break;
                 }
             }
         } catch (CameraAccessException e) {
             Log.e(TAG, "Camera access exception", e);
         }
-        return false;
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (isCameraAvailable()) {
-                    initializeCamera();
-                } else {
-                    showPopup("camera_not_available");
-                }
+                initializeCamera();
             } else {
                 showPopup("camera_not_granted");
             }
@@ -143,6 +171,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         mOpenCvCameraView.disableFpsMeter();
         mOpenCvCameraView.setVisibility(View.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+        fetchMaxZoom();
+        mOpenCvCameraView.enableView();
     }
 
     @Override
@@ -159,7 +189,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     @Override
     public void onResume() {
         super.onResume();
-        if (mOpenCvCameraView != null) {
+        if (mOpenCvCameraView != null && ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             mOpenCvCameraView.enableView();
         }
         startNameUpdateTimer();
@@ -203,7 +233,6 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         Rect detectionSquare = drawingUtils.getDetectionSquare(mRgba, squareSize);
         drawingUtils.drawSquares(mRgba, squareSize);
 
-        // If not already processing a frame, submit a new one
         if (isProcessingFrame.compareAndSet(false, true)) {
             final Mat submatCopy = mRgba.submat(detectionSquare).clone();
             computeExecutor.execute(() -> {
