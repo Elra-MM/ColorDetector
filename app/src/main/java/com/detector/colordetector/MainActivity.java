@@ -66,7 +66,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         executorServiceComputeMedians = Executors.newFixedThreadPool(1);
 
-        Button privacyPolicyButton = findViewById(R.id.button_privacy_policy);
+        View privacyPolicyButton = findViewById(R.id.button_privacy_policy);
         privacyPolicyButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, PrivacyPolicyActivity.class);
             startActivity(intent);
