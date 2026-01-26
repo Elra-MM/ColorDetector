@@ -231,7 +231,9 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         int squareSize = drawingUtils.getDetectionSquareSize(mRgba);
         Rect detectionSquare = drawingUtils.getDetectionSquare(mRgba, squareSize);
-        drawingUtils.drawSquares(mRgba, squareSize);
+        
+        // Use the new dashed circle instead of squares
+        drawingUtils.drawDetectionCircle(mRgba, squareSize);
 
         if (isProcessingFrame.compareAndSet(false, true)) {
             final Mat submatCopy = mRgba.submat(detectionSquare).clone();
