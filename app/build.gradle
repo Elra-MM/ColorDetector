@@ -4,16 +4,22 @@ plugins {
 
 android {
     namespace 'com.detector.colordetector'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.color.detector"
         minSdk 24
-        targetSdk 34
-        versionCode 2
-        versionName "2.0"
+        targetSdk 35
+        versionCode 3
+        versionName "2.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+            }
+        }
     }
 
     buildTypes {
@@ -23,14 +29,20 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+    
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
 dependencies {
-
     implementation libs.appcompat
     implementation libs.material
     implementation libs.activity
