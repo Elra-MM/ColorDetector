@@ -13,19 +13,23 @@ public class ZoomableCameraView extends JavaCameraView {
         super(context, attrs);
     }
 
-    public void setZoom(float zoomFactor) {
+    public void setZoom(float zoomFactor, float maxZoomValue) {
         if (mCamera == null) return;
 
         Camera.Parameters params = mCamera.getParameters();
         if (!params.isZoomSupported()) return;
 
-        int maxZoom = params.getMaxZoom();
-        // zoomFactor is between 1.0 and maxZoomValue (e.g. 10.0)
-        // We map it to the range [0, maxZoom]
-        int zoomValue = (int) ((zoomFactor - 1.0f) * maxZoom / 9.0f); 
-        zoomValue = Math.max(0, Math.min(zoomValue, maxZoom));
+        int maxZoomIdx = params.getMaxZoom();
+        
+        // Map zoomFactor (1.0 to maxZoomValue) to [0, maxZoomIdx]
+        float ratio = (zoomFactor - 1.0f) / (maxZoomValue - 1.0f);
+        int zoomValue = Math.round(ratio * maxZoomIdx);
+        
+        zoomValue = Math.max(0, Math.min(zoomValue, maxZoomIdx));
 
-        params.setZoom(zoomValue);
-        mCamera.setParameters(params);
+        if (params.getZoom() != zoomValue) {
+            params.setZoom(zoomValue);
+            mCamera.setParameters(params);
+        }
     }
 }

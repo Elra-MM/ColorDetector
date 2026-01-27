@@ -41,7 +41,6 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     
     private CameraBridgeViewBase mOpenCvCameraView;
     private ColorCalculator colorCalculator;
-    private DrawingUtils drawingUtils;
     private Window window;
     
     private ExecutorService computeExecutor;
@@ -50,7 +49,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     private ScaleGestureDetector scaleGestureDetector;
     private float zoomFactor = 1.0f;
-    private float maxZoom = 1.0f;
+    private float maxZoomValue = 1.0f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,13 +62,11 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         colorCalculator = new ColorCalculator(getAssets(), findViewById(R.id.color_txt));
-        drawingUtils = new DrawingUtils();
 
         computeExecutor = Executors.newSingleThreadExecutor();
         startNameUpdateTimer();
 
-        View privacyPolicyButton = findViewById(R.id.button_privacy_policy);
-        privacyPolicyButton.setOnClickListener(v -> {
+        findViewById(R.id.button_privacy_policy).setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, PrivacyPolicyActivity.class);
             startActivity(intent);
         });
@@ -83,10 +80,10 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
                 zoomFactor *= detector.getScaleFactor();
-                zoomFactor = Math.max(1.0f, Math.min(zoomFactor, maxZoom));
+                zoomFactor = Math.max(1.0f, Math.min(zoomFactor, maxZoomValue));
                 
                 if (mOpenCvCameraView instanceof ZoomableCameraView) {
-                    ((ZoomableCameraView) mOpenCvCameraView).setZoom(zoomFactor);
+                    ((ZoomableCameraView) mOpenCvCameraView).setZoom(zoomFactor, maxZoomValue);
                 }
                 return true;
             }
@@ -118,9 +115,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     }
 
     private void initOpenCV() {
-        if (OpenCVLoader.initLocal()) {
-            Log.i(TAG, "OpenCV initialized successfully");
-        } else {
+        if (!OpenCVLoader.initLocal()) {
             Log.e(TAG, "OpenCV initialization failed");
             showPopup("opencv_init_failed");
         }
@@ -141,9 +136,9 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                 CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
                 Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
-                    Float maxZoomValue = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
-                    if (maxZoomValue != null) {
-                        this.maxZoom = maxZoomValue;
+                    Float maxZoom = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
+                    if (maxZoom != null) {
+                        this.maxZoomValue = maxZoom;
                     }
                     break;
                 }
@@ -178,12 +173,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     @Override
     public void onPause() {
         super.onPause();
-        if (mOpenCvCameraView != null) {
-            mOpenCvCameraView.disableView();
-        }
-        if (nameUpdateExecutor != null) {
-            nameUpdateExecutor.shutdown();
-        }
+        if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
+        if (nameUpdateExecutor != null) nameUpdateExecutor.shutdown();
     }
 
     @Override
@@ -203,40 +194,27 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mOpenCvCameraView != null) {
-            mOpenCvCameraView.disableView();
-        }
-        if (nameUpdateExecutor != null) {
-            nameUpdateExecutor.shutdownNow();
-        }
-        if (computeExecutor != null) {
-            computeExecutor.shutdownNow();
-        }
-        if (colorCalculator != null) {
-            colorCalculator.shutdown();
-        }
+        if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
+        if (nameUpdateExecutor != null) nameUpdateExecutor.shutdownNow();
+        if (computeExecutor != null) computeExecutor.shutdownNow();
+        if (colorCalculator != null) colorCalculator.shutdown();
     }
 
     @Override
-    public void onCameraViewStarted(int width, int height) {
-    }
+    public void onCameraViewStarted(int width, int height) {}
 
     @Override
-    public void onCameraViewStopped() {
-    }
+    public void onCameraViewStopped() {}
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        Mat mRgba = inputFrame.rgba();
+        Mat rgba = inputFrame.rgba();
 
-        int squareSize = drawingUtils.getDetectionSquareSize(mRgba);
-        Rect detectionSquare = drawingUtils.getDetectionSquare(mRgba, squareSize);
-        
-        // Use the new dashed circle instead of squares
-        drawingUtils.drawDetectionCircle(mRgba, squareSize);
+        DrawingUtils.drawDashedCircle(rgba);
 
         if (isProcessingFrame.compareAndSet(false, true)) {
-            final Mat submatCopy = mRgba.submat(detectionSquare).clone();
+            Rect detectionRect = DrawingUtils.getDetectionRect(rgba);
+            final Mat submatCopy = rgba.submat(detectionRect).clone();
             computeExecutor.execute(() -> {
                 try {
                     colorCalculator.computeNewMedian(submatCopy);
@@ -247,7 +225,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             });
         }
 
-        return mRgba;
+        return rgba;
     }
 
     private void showPopup(String msgKey) {
@@ -267,7 +245,6 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                 finish();
             });
         }
-
         dialog.show();
     }
 }
