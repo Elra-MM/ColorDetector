@@ -10,7 +10,7 @@ android {
         applicationId "com.color.detector"
         minSdk 24
         targetSdk 35
-        versionCode 3
+        versionCode 6
         versionName "2.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -24,7 +24,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
         }
