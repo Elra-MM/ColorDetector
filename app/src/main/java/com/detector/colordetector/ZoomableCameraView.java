@@ -1,35 +1,50 @@
 package com.detector.colordetector;
 
 import android.content.Context;
-import android.hardware.Camera;
+import android.graphics.Rect;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CaptureRequest;
 import android.util.AttributeSet;
 import android.util.Log;
 
-import org.opencv.android.JavaCameraView;
+import org.opencv.android.JavaCamera2View;
 
-public class ZoomableCameraView extends JavaCameraView {
+public class ZoomableCameraView extends JavaCamera2View {
+    private static final String TAG = "ZoomableCameraView";
 
     public ZoomableCameraView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public void setZoom(float zoomFactor, float maxZoomValue) {
-        if (mCamera == null) return;
+    /**
+     * Sets the zoom level using the Camera2 crop region.
+     * @param zoomFactor The zoom level (1.0 to max)
+     * @param sensorRect The active array size of the sensor
+     */
+    public void setZoom(float zoomFactor, Rect sensorRect) {
+        if (mCameraDevice == null || sensorRect == null || mPreviewRequestBuilder == null) return;
 
-        Camera.Parameters params = mCamera.getParameters();
-        if (!params.isZoomSupported()) return;
+        // Calculate the crop region based on the zoom factor
+        int centerX = sensorRect.width() / 2;
+        int centerY = sensorRect.height() / 2;
+        int deltaX = (int) (0.5f * sensorRect.width() / zoomFactor);
+        int deltaY = (int) (0.5f * sensorRect.height() / zoomFactor);
 
-        int maxZoomIdx = params.getMaxZoom();
-        
-        // Map zoomFactor (1.0 to maxZoomValue) to [0, maxZoomIdx]
-        float ratio = (zoomFactor - 1.0f) / (maxZoomValue - 1.0f);
-        int zoomValue = Math.round(ratio * maxZoomIdx);
-        
-        zoomValue = Math.max(0, Math.min(zoomValue, maxZoomIdx));
+        Rect cropRect = new Rect(
+                centerX - deltaX,
+                centerY - deltaY,
+                centerX + deltaX,
+                centerY + deltaY
+        );
 
-        if (params.getZoom() != zoomValue) {
-            params.setZoom(zoomValue);
-            mCamera.setParameters(params);
+        try {
+            // Update the preview request with the new zoom (crop region)
+            mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, cropRect);
+            if (mCaptureSession != null) {
+                mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), null, mBackgroundHandler);
+            }
+        } catch (CameraAccessException | IllegalStateException e) {
+            Log.e(TAG, "Failed to update zoom", e);
         }
     }
 }

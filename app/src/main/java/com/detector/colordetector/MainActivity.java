@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Rect;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
@@ -24,7 +25,6 @@ import org.opencv.android.CameraActivity;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
-import org.opencv.core.Rect;
 
 import java.util.Collections;
 import java.util.List;
@@ -50,6 +50,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private ScaleGestureDetector scaleGestureDetector;
     private float zoomFactor = 1.0f;
     private float maxZoomValue = 1.0f;
+    private Rect sensorRect;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +84,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                 zoomFactor = Math.max(1.0f, Math.min(zoomFactor, maxZoomValue));
                 
                 if (mOpenCvCameraView instanceof ZoomableCameraView) {
-                    ((ZoomableCameraView) mOpenCvCameraView).setZoom(zoomFactor, maxZoomValue);
+                    ((ZoomableCameraView) mOpenCvCameraView).setZoom(zoomFactor, sensorRect);
                 }
                 return true;
             }
@@ -129,7 +130,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         }
     }
 
-    private void fetchMaxZoom() {
+    private void fetchCameraCharacteristics() {
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
             for (String cameraId : cameraManager.getCameraIdList()) {
@@ -140,6 +141,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                     if (maxZoom != null) {
                         this.maxZoomValue = maxZoom;
                     }
+                    this.sensorRect = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
                     break;
                 }
             }
@@ -166,7 +168,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         mOpenCvCameraView.disableFpsMeter();
         mOpenCvCameraView.setVisibility(View.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
-        fetchMaxZoom();
+        fetchCameraCharacteristics();
         mOpenCvCameraView.enableView();
     }
 
@@ -213,7 +215,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         DrawingUtils.drawDashedCircle(rgba);
 
         if (isProcessingFrame.compareAndSet(false, true)) {
-            Rect detectionRect = DrawingUtils.getDetectionRect(rgba);
+            org.opencv.core.Rect detectionRect = DrawingUtils.getDetectionRect(rgba);
             final Mat submatCopy = rgba.submat(detectionRect).clone();
             computeExecutor.execute(() -> {
                 try {
